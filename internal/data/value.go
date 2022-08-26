@@ -27,28 +27,6 @@ type Value struct {
 	Set    []Value          `json:"set,omitempty"`
 }
 
-// IsNull returns true if the Value would be null for the given type.
-func (v Value) IsNull(t tftypes.Type) (bool, error) {
-	switch {
-	case t.Is(tftypes.Bool):
-		return v.Boolean == nil, nil
-	case t.Is(tftypes.String):
-		return v.String == nil, nil
-	case t.Is(tftypes.Number):
-		return v.Number == nil, nil
-	case t.Is(tftypes.List{}):
-		return v.List == nil, nil
-	case t.Is(tftypes.Map{}):
-		return v.Map == nil, nil
-	case t.Is(tftypes.Object{}):
-		return v.Object == nil, nil
-	case t.Is(tftypes.Set{}):
-		return v.Set == nil, nil
-	default:
-		return false, errors.New("Unrecognized type: " + t.String())
-	}
-}
-
 // ToTerraform5Value accepts our representation of a Value alongside the
 // tftypes.Type description, and returns a tftypes.Value object that can be
 // passed into the Terraform SDK.
@@ -85,10 +63,6 @@ func ToTerraform5Value(v Value, t tftypes.Type) (tftypes.Value, error) {
 // the type (the expectation is that the type information will always be
 // provided by the SDK regardless of which direction we need to go).
 func FromTerraform5Value(v tftypes.Value) (Value, error) {
-	if v.IsNull() {
-		return Value{}, nil
-	}
-
 	t := v.Type()
 	switch {
 	case t.Is(tftypes.Bool):
