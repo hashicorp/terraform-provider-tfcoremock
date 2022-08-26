@@ -17,6 +17,10 @@ var _ tftypes.ValueCreator = &Resource{}
 // as a Resource. In practice, there will probably be edge cases and types that
 // have been missed.
 //
+// If we could write tftypes.Value into a human friendly format, and read back
+// any changes from that then we wouldn't need this bridge. But, we can't do
+// that using the current SDK so we handle it ourselves here.
+//
 // You must call the WithType function manually to attach the object type before
 // attempting to convert a Resource into a Terraform SDK value.
 //

@@ -6,7 +6,7 @@ import (
 	"math/big"
 )
 
-// Value is the mock provider's representation of any generic Terraform value.
+// Value is the mock provider's representation of any generic Terraform Value.
 //
 // It can be converted from/to a tftypes.Value using the functions in this
 // package, and it can be marshalled to/from JSON using the Golang JSON package.
@@ -25,6 +25,28 @@ type Value struct {
 	Map    map[string]Value `json:"map,omitempty"`
 	Object map[string]Value `json:"object,omitempty"`
 	Set    []Value          `json:"set,omitempty"`
+}
+
+// IsNull returns true if the Value would be null for the given type.
+func (v Value) IsNull(t tftypes.Type) (bool, error) {
+	switch {
+	case t.Is(tftypes.Bool):
+		return v.Boolean == nil, nil
+	case t.Is(tftypes.String):
+		return v.String == nil, nil
+	case t.Is(tftypes.Number):
+		return v.Number == nil, nil
+	case t.Is(tftypes.List{}):
+		return v.List == nil, nil
+	case t.Is(tftypes.Map{}):
+		return v.Map == nil, nil
+	case t.Is(tftypes.Object{}):
+		return v.Object == nil, nil
+	case t.Is(tftypes.Set{}):
+		return v.Set == nil, nil
+	default:
+		return false, errors.New("Unrecognized type: " + t.String())
+	}
 }
 
 // ToTerraform5Value accepts our representation of a Value alongside the
@@ -62,35 +84,43 @@ func ToTerraform5Value(v Value, t tftypes.Type) (tftypes.Value, error) {
 // include the type information as this is not embedded in our representation of
 // the type (the expectation is that the type information will always be
 // provided by the SDK regardless of which direction we need to go).
-func FromTerraform5Value(value tftypes.Value) (Value, error) {
-	t := value.Type()
+func FromTerraform5Value(v tftypes.Value) (Value, error) {
+	if v.IsNull() {
+		return Value{}, nil
+	}
+
+	t := v.Type()
 	switch {
 	case t.Is(tftypes.Bool):
-		v := Value{}
-		err := value.As(&v.Boolean)
-		return v, err
+		ret := Value{}
+		err := v.As(&ret.Boolean)
+		return ret, err
 	case t.Is(tftypes.String):
-		v := Value{}
-		err := value.As(&v.String)
-		return v, err
+		ret := Value{}
+		err := v.As(&ret.String)
+		return ret, err
 	case t.Is(tftypes.Number):
-		v := Value{}
-		err := value.As(&v.Number)
-		return v, err
+		ret := Value{}
+		err := v.As(&ret.Number)
+		return ret, err
 	case t.Is(tftypes.List{}):
-		return listFromTerraform5Value(value)
+		return listFromTerraform5Value(v)
 	case t.Is(tftypes.Map{}):
-		return mapFromTerraform5Value(value)
+		return mapFromTerraform5Value(v)
 	case t.Is(tftypes.Object{}):
-		return objectFromTerraform5Value(value)
+		return objectFromTerraform5Value(v)
 	case t.Is(tftypes.Set{}):
-		return setFromTerraform5Value(value)
+		return setFromTerraform5Value(v)
 	default:
 		return Value{}, errors.New("Unrecognized type: " + t.String())
 	}
 }
 
 func listToTerraform5Value(values []Value, listType tftypes.List) (tftypes.Value, error) {
+	if values == nil {
+		return tftypes.NewValue(listType, nil), nil
+	}
+
 	var children []tftypes.Value
 	for _, value := range values {
 		child, err := ToTerraform5Value(value, listType.ElementType)
@@ -103,6 +133,10 @@ func listToTerraform5Value(values []Value, listType tftypes.List) (tftypes.Value
 }
 
 func mapToTerraform5Value(values map[string]Value, mapType tftypes.Map) (tftypes.Value, error) {
+	if values == nil {
+		return tftypes.NewValue(mapType, nil), nil
+	}
+
 	children := make(map[string]tftypes.Value)
 	for name, value := range values {
 		child, err := ToTerraform5Value(value, mapType.ElementType)
@@ -115,16 +149,20 @@ func mapToTerraform5Value(values map[string]Value, mapType tftypes.Map) (tftypes
 }
 
 // objectToTerraform5Value is a bit of a special case as we return the inner
-// value of the Value instead of the Value directly (as with the other
+// value of the value instead of the value directly (as with the other
 // functions). This is because we use this function as part of our
 // implementation of the ValueCreator and ValueConverter of the Resource type
 // which expects the underlying structure instead of being already converted.
-func objectToTerraform5Value(values map[string]Value, objectType tftypes.Object) (map[string]tftypes.Value, error) {
+func objectToTerraform5Value(values map[string]Value, objectType tftypes.Object) (interface{}, error) {
+	if values == nil {
+		return nil, nil
+	}
+
 	children := make(map[string]tftypes.Value)
 	for name, childType := range objectType.AttributeTypes {
 
 		// It is possible that this child type exists in the type representation
-		// but not in the actual (this is because we can have optional
+		// but not in the actual value (this is because we can have optional
 		// attributes in objects). So we try and retrieve the child from the
 		// values but if it is not there we don't fail, instead we just set an
 		// empty value in its place.
@@ -137,14 +175,17 @@ func objectToTerraform5Value(values map[string]Value, objectType tftypes.Object)
 			continue
 		}
 
-		if children[name], err = ToTerraform5Value(Value{}, childType); err != nil {
-			return nil, err
-		}
+		// Otherwise we just set a nil value.
+		children[name] = tftypes.NewValue(childType, nil)
 	}
 	return children, nil
 }
 
 func setToTerraform5Value(values []Value, setType tftypes.Set) (tftypes.Value, error) {
+	if values == nil {
+		return tftypes.NewValue(setType, nil), nil
+	}
+
 	var children []tftypes.Value
 	for _, value := range values {
 		child, err := ToTerraform5Value(value, setType.ElementType)
@@ -156,13 +197,16 @@ func setToTerraform5Value(values []Value, setType tftypes.Set) (tftypes.Value, e
 	return tftypes.NewValue(setType, children), nil
 }
 
-func listFromTerraform5Value(value tftypes.Value) (Value, error) {
+func listFromTerraform5Value(v tftypes.Value) (Value, error) {
 	var children []tftypes.Value
-	if err := value.As(&children); err != nil {
+	if err := v.As(&children); err != nil {
 		return Value{}, err
 	}
 
-	var list []Value
+	// There is a difference between a list being empty and being null from
+	// Terraform's perspective. So we want to create a list of length 0 rather
+	// than leaving it as null.
+	list := make([]Value, 0)
 	for _, child := range children {
 		parsed, err := FromTerraform5Value(child)
 		if err != nil {
@@ -176,9 +220,9 @@ func listFromTerraform5Value(value tftypes.Value) (Value, error) {
 	}, nil
 }
 
-func mapFromTerraform5Value(value tftypes.Value) (Value, error) {
+func mapFromTerraform5Value(v tftypes.Value) (Value, error) {
 	var children map[string]tftypes.Value
-	if err := value.As(&children); err != nil {
+	if err := v.As(&children); err != nil {
 		return Value{}, err
 	}
 
@@ -196,19 +240,32 @@ func mapFromTerraform5Value(value tftypes.Value) (Value, error) {
 	}, nil
 }
 
-func objectFromTerraform5Value(value tftypes.Value) (Value, error) {
+func objectFromTerraform5Value(v tftypes.Value) (Value, error) {
 	var children map[string]tftypes.Value
-	if err := value.As(&children); err != nil {
+	if err := v.As(&children); err != nil {
 		return Value{}, err
 	}
 
 	values := make(map[string]Value)
 	for name, child := range children {
+		if child.IsNull() {
+			// Terraform handles unset objects differently to us. We just don't
+			// add unset attributes to our objects while terraform adds them
+			// but sets them to null. If this child value is null in the
+			// Terraform representation we just skip it.
+			//
+			// Note, the reverse implementation in objectToTerrafrom5Value. We
+			// check the type information and set any missing attributes as null
+			// when converting into the terraform representation.
+			continue
+		}
+
 		parsed, err := FromTerraform5Value(child)
 		if err != nil {
 			return Value{}, err
 		}
 		values[name] = parsed
+
 	}
 
 	return Value{
@@ -216,13 +273,13 @@ func objectFromTerraform5Value(value tftypes.Value) (Value, error) {
 	}, nil
 }
 
-func setFromTerraform5Value(value tftypes.Value) (Value, error) {
+func setFromTerraform5Value(v tftypes.Value) (Value, error) {
 	var children []tftypes.Value
-	if err := value.As(&children); err != nil {
+	if err := v.As(&children); err != nil {
 		return Value{}, err
 	}
 
-	var set []Value
+	set := make([]Value, 0)
 	for _, child := range children {
 		parsed, err := FromTerraform5Value(child)
 		if err != nil {
