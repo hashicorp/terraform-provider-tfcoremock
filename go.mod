@@ -1,4 +1,4 @@
-module github.com/hashicorp/terraform-provider-scaffolding-framework
+module github.com/hashicorp/terraform-provider-mock
 
 go 1.18
 
@@ -8,6 +8,7 @@ require (
 	github.com/hashicorp/terraform-plugin-go v0.14.0
 	github.com/hashicorp/terraform-plugin-log v0.7.0
 	github.com/hashicorp/terraform-plugin-sdk/v2 v2.21.0
+	github.com/hashicorp/terraform-provider-scaffolding-framework v0.0.0-20220815142125-a56f26ccb61c
 )
 
 require (
