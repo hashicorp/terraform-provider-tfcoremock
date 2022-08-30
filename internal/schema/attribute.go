@@ -69,7 +69,7 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 			Attributes: tfsdk.SingleNestedAttributes(attributes),
 		}, nil
 	default:
-		return tfsdk.Attribute{}, errors.New("unrecognized attribute type: " + a.Type)
+		return tfsdk.Attribute{}, errors.New("unrecognized attribute type: " + string(a.Type))
 	}
 }
 
