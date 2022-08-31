@@ -2,8 +2,9 @@ package data
 
 import (
 	"errors"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"math/big"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Value is the mock provider's representation of any generic Terraform Value.
@@ -16,15 +17,19 @@ import (
 // We use pointers where appropriate to make sure the omitempty metadata works
 // to keep the produced structs as small and relevant as possible as they are
 // intended to be consumed by humans.
+//
+// We introduce pointers to the complex objects because there is a difference
+// between unset (or nil) and an empty list and we want to record that
+// difference.
 type Value struct {
 	Boolean *bool      `json:"boolean,omitempty"`
 	Number  *big.Float `json:"number,omitempty"`
 	String  *string    `json:"string,omitempty"`
 
-	List   []Value          `json:"list,omitempty"`
-	Map    map[string]Value `json:"map,omitempty"`
-	Object map[string]Value `json:"object,omitempty"`
-	Set    []Value          `json:"set,omitempty"`
+	List   *[]Value          `json:"list,omitempty"`
+	Map    *map[string]Value `json:"map,omitempty"`
+	Object *map[string]Value `json:"object,omitempty"`
+	Set    *[]Value          `json:"set,omitempty"`
 }
 
 // ToTerraform5Value accepts our representation of a Value alongside the
@@ -90,13 +95,13 @@ func FromTerraform5Value(v tftypes.Value) (Value, error) {
 	}
 }
 
-func listToTerraform5Value(values []Value, listType tftypes.List) (tftypes.Value, error) {
+func listToTerraform5Value(values *[]Value, listType tftypes.List) (tftypes.Value, error) {
 	if values == nil {
 		return tftypes.NewValue(listType, nil), nil
 	}
 
-	var children []tftypes.Value
-	for _, value := range values {
+	children := make([]tftypes.Value, 0)
+	for _, value := range *values {
 		child, err := ToTerraform5Value(value, listType.ElementType)
 		if err != nil {
 			return tftypes.Value{}, err
@@ -106,13 +111,13 @@ func listToTerraform5Value(values []Value, listType tftypes.List) (tftypes.Value
 	return tftypes.NewValue(listType, children), nil
 }
 
-func mapToTerraform5Value(values map[string]Value, mapType tftypes.Map) (tftypes.Value, error) {
+func mapToTerraform5Value(values *map[string]Value, mapType tftypes.Map) (tftypes.Value, error) {
 	if values == nil {
 		return tftypes.NewValue(mapType, nil), nil
 	}
 
 	children := make(map[string]tftypes.Value)
-	for name, value := range values {
+	for name, value := range *values {
 		child, err := ToTerraform5Value(value, mapType.ElementType)
 		if err != nil {
 			return tftypes.Value{}, err
@@ -127,7 +132,7 @@ func mapToTerraform5Value(values map[string]Value, mapType tftypes.Map) (tftypes
 // functions). This is because we use this function as part of our
 // implementation of the ValueCreator and ValueConverter of the Resource type
 // which expects the underlying structure instead of being already converted.
-func objectToTerraform5Value(values map[string]Value, objectType tftypes.Object) (interface{}, error) {
+func objectToTerraform5Value(values *map[string]Value, objectType tftypes.Object) (interface{}, error) {
 	if values == nil {
 		return nil, nil
 	}
@@ -142,7 +147,7 @@ func objectToTerraform5Value(values map[string]Value, objectType tftypes.Object)
 		// empty value in its place.
 
 		var err error
-		if value, ok := values[name]; ok {
+		if value, ok := (*values)[name]; ok {
 			if children[name], err = ToTerraform5Value(value, childType); err != nil {
 				return nil, err
 			}
@@ -155,13 +160,13 @@ func objectToTerraform5Value(values map[string]Value, objectType tftypes.Object)
 	return children, nil
 }
 
-func setToTerraform5Value(values []Value, setType tftypes.Set) (tftypes.Value, error) {
+func setToTerraform5Value(values *[]Value, setType tftypes.Set) (tftypes.Value, error) {
 	if values == nil {
 		return tftypes.NewValue(setType, nil), nil
 	}
 
-	var children []tftypes.Value
-	for _, value := range values {
+	children := make([]tftypes.Value, 0)
+	for _, value := range *values {
 		child, err := ToTerraform5Value(value, setType.ElementType)
 		if err != nil {
 			return tftypes.Value{}, err
@@ -190,7 +195,7 @@ func listFromTerraform5Value(v tftypes.Value) (Value, error) {
 	}
 
 	return Value{
-		List: list,
+		List: &list,
 	}, nil
 }
 
@@ -210,7 +215,7 @@ func mapFromTerraform5Value(v tftypes.Value) (Value, error) {
 	}
 
 	return Value{
-		Map: values,
+		Map: &values,
 	}, nil
 }
 
@@ -243,7 +248,7 @@ func objectFromTerraform5Value(v tftypes.Value) (Value, error) {
 	}
 
 	return Value{
-		Object: values,
+		Object: &values,
 	}, nil
 }
 
@@ -263,6 +268,6 @@ func setFromTerraform5Value(v tftypes.Value) (Value, error) {
 	}
 
 	return Value{
-		Set: set,
+		Set: &set,
 	}, nil
 }

@@ -2,10 +2,11 @@ package data
 
 import (
 	"encoding/json"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/stretchr/testify/require"
 )
 
 func TestResource_Symmetry(t *testing.T) {
@@ -55,7 +56,7 @@ func TestResource_Symmetry(t *testing.T) {
 				},
 				Values: map[string]Value{
 					"object": {
-						Object: map[string]Value{},
+						Object: &map[string]Value{},
 					},
 				},
 			},
@@ -85,7 +86,7 @@ func TestResource_Symmetry(t *testing.T) {
 				},
 				Values: map[string]Value{
 					"list": {
-						List: []Value{},
+						List: &[]Value{},
 					},
 				},
 			},

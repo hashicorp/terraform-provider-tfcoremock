@@ -2,8 +2,9 @@ package dynamic
 
 import (
 	"encoding/json"
-	"github.com/hashicorp/terraform-provider-mock/internal/schema"
 	"os"
+
+	"github.com/hashicorp/terraform-provider-mock/internal/schema"
 )
 
 type Reader interface {
@@ -19,8 +20,7 @@ type StringReader struct {
 }
 
 func (r FileReader) Read() (map[string]schema.Schema, error) {
-	// TODO(liamcervante): Turn this into an environment variable?
-	data, err := os.ReadFile("dynamic_resources.json")
+	data, err := os.ReadFile(r.File)
 	if err != nil {
 		if os.IsNotExist(err) {
 			return nil, nil

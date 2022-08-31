@@ -2,15 +2,17 @@ package resource
 
 import (
 	"context"
+	"os"
+
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-provider-mock/internal/client"
 	"github.com/hashicorp/terraform-provider-mock/internal/data"
 	"github.com/hashicorp/terraform-provider-mock/internal/schema"
-	"os"
 )
 
 var _ resource.Resource = Resource{}
@@ -76,8 +78,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 
 func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
 	resource := &data.Resource{}
-
-	response.Diagnostics.Append(request.State.Get(ctx, &resource)...)
+	response.Diagnostics.Append(request.Plan.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {
 		return
 	}

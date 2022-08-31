@@ -1,0 +1,10 @@
+{
+  "values": {
+    "id": {
+      "string": "simple_resource"
+    },
+    "integer": {
+      "number": "0"
+    }
+  }
+}

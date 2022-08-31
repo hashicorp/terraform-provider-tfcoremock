@@ -3,9 +3,11 @@ package resource
 import (
 	"context"
 	"fmt"
+
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-provider-mock/internal/client"
 	"github.com/hashicorp/terraform-provider-mock/internal/data"
 	"github.com/hashicorp/terraform-provider-mock/internal/schema"
