@@ -2,7 +2,6 @@ package data
 
 import (
 	"errors"
-
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 

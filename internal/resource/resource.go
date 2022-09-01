@@ -2,13 +2,12 @@ package resource
 
 import (
 	"context"
-	"os"
-
-	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+	"github.com/hashicorp/terraform-provider-mock/internal/computed"
+	"os"
 
 	"github.com/hashicorp/terraform-provider-mock/internal/client"
 	"github.com/hashicorp/terraform-provider-mock/internal/data"
@@ -30,15 +29,9 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 		return
 	}
 
-	// Generate the ID for this resource if it doesn't exist already.
-	if _, ok := resource.Values["id"]; !ok {
-		id, err := uuid.GenerateUUID()
-		if err != nil {
-			response.Diagnostics.Append(diag.NewErrorDiagnostic("could not generate id", err.Error()))
-		}
-		resource.Values["id"] = data.Value{
-			String: &id,
-		}
+	if err := computed.GenerateComputedValues(resource, r.Schema); err != nil {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to generate computed values", err.Error()))
+		return
 	}
 
 	if err := r.Client.WriteResource(ctx, resource); err != nil {
@@ -46,7 +39,8 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 		return
 	}
 
-	response.Diagnostics.Append(response.State.Set(ctx, resource)...)
+	diags := response.State.Set(ctx, resource)
+	response.Diagnostics.Append(diags...)
 }
 
 func (r Resource) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
