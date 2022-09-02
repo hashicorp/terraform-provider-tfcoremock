@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func TestResource_Symmetry(t *testing.T) {
+func TestResource_symmetry(t *testing.T) {
 	testCases := []struct {
 		TestCase string
 		Resource Resource
@@ -119,7 +119,7 @@ func TestResource_Symmetry(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.TestCase, func(t *testing.T) {
-			CheckSymmetry(t, testCase.Resource)
+			checkSymmetry(t, testCase.Resource)
 		})
 	}
 }
@@ -130,13 +130,13 @@ func toJson(t *testing.T, obj Resource) string {
 	return string(data)
 }
 
-func CheckResourceEqual(t *testing.T, expected, actual Resource) {
+func checkResourceEqual(t *testing.T, expected, actual Resource) {
 	expectedString := toJson(t, expected)
 	actualString := toJson(t, actual)
 	require.Equal(t, expectedString, actualString)
 }
 
-func CheckSymmetry(t *testing.T, resource Resource) {
+func checkSymmetry(t *testing.T, resource Resource) {
 	raw, err := resource.ToTerraform5Value()
 	require.NoError(t, err)
 
@@ -144,5 +144,5 @@ func CheckSymmetry(t *testing.T, resource Resource) {
 	actual := Resource{}
 	require.NoError(t, actual.FromTerraform5Value(value))
 
-	CheckResourceEqual(t, resource, actual)
+	checkResourceEqual(t, resource, actual)
 }
