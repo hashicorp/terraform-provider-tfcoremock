@@ -14,7 +14,7 @@ import (
 // Computed values have a sensible default for all primitive types, and can be
 // specified using a data.Value object as part of the dynamic schema.
 //
-// Objects are complicated as you can have nested objects with computed values
+// Objects are complicated as you can have nested objects with required values
 // so the default value for a computed object is to generate an object with all
 // the required and computed values populated using a default.
 func GenerateComputedValues(resource *data.Resource, schema schema.Schema) error {
@@ -150,11 +150,14 @@ func generateComputedValuesForObject(values *map[string]data.Value, attributes m
 		if !attribute.Required && !attribute.Computed {
 			// We don't actually need to provide anything, so let's just skip
 			// over this.
+			//
+			// Note, that we are actually creating values for required
+			// attributes within computed objects at this point. We are relying
+			// on Terraform Core and the SDK to properly validate the config, so
+			// we do trust that any required but non-computed attributes have
+			// been properly set in the configuration.
 			continue
 		}
-		//if attribute.Optional {
-		//	continue
-		//}
 
 		// Finally, we are in the unhappy position of having to generate a
 		// value.
