@@ -2,8 +2,9 @@ package data
 
 import (
 	"errors"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"math/big"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 // Value is the mock provider's representation of any generic Terraform Value.

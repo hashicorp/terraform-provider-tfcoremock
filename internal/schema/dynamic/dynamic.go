@@ -2,8 +2,9 @@ package dynamic
 
 import (
 	"encoding/json"
-	"github.com/hashicorp/terraform-provider-mock/internal/schema"
 	"os"
+
+	"github.com/hashicorp/terraform-provider-mock/internal/schema"
 )
 
 type Reader interface {

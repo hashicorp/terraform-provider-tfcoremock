@@ -2,15 +2,17 @@ package resource
 
 import (
 	"context"
+	"os"
+
 	"github.com/hashicorp/go-uuid"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
 	"github.com/hashicorp/terraform-provider-mock/internal/client"
 	"github.com/hashicorp/terraform-provider-mock/internal/data"
 	"github.com/hashicorp/terraform-provider-mock/internal/schema"
-	"os"
 )
 
 var _ resource.Resource = Resource{}
