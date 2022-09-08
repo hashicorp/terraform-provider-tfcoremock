@@ -3,12 +3,11 @@ package data
 import (
 	"encoding/json"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
-	"github.com/stretchr/testify/require"
 	"math/big"
 	"testing"
 )
 
-func TestResource_Symmetry(t *testing.T) {
+func TestResource_symmetry(t *testing.T) {
 	testCases := []struct {
 		TestCase string
 		Resource Resource
@@ -119,30 +118,39 @@ func TestResource_Symmetry(t *testing.T) {
 	}
 	for _, testCase := range testCases {
 		t.Run(testCase.TestCase, func(t *testing.T) {
-			CheckSymmetry(t, testCase.Resource)
+			checkSymmetry(t, testCase.Resource)
 		})
 	}
 }
 
 func toJson(t *testing.T, obj Resource) string {
 	data, err := json.Marshal(obj)
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("found unexpected error when marshalling json: %v", err)
+	}
 	return string(data)
 }
 
-func CheckResourceEqual(t *testing.T, expected, actual Resource) {
+func checkResourceEqual(t *testing.T, expected, actual Resource) {
 	expectedString := toJson(t, expected)
 	actualString := toJson(t, actual)
-	require.Equal(t, expectedString, actualString)
+	if expectedString != actualString {
+		t.Fatalf("expected did not match actual\nexpected:\n%s\nactual:\n%s", expectedString, actualString)
+	}
 }
 
-func CheckSymmetry(t *testing.T, resource Resource) {
+func checkSymmetry(t *testing.T, resource Resource) {
 	raw, err := resource.ToTerraform5Value()
-	require.NoError(t, err)
+	if err != nil {
+		t.Fatalf("found unexpected error in ToTerraform5Value(): %v", err)
+	}
 
 	value := tftypes.NewValue(resource.objectType, raw)
 	actual := Resource{}
-	require.NoError(t, actual.FromTerraform5Value(value))
+	err = actual.FromTerraform5Value(value)
+	if err != nil {
+		t.Fatalf("found unexpected error in FromTerraform5Value(): %v", err)
+	}
 
-	CheckResourceEqual(t, resource, actual)
+	checkResourceEqual(t, resource, actual)
 }
