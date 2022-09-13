@@ -5,6 +5,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"github.com/hashicorp/terraform-provider-mock/internal/computed"
 	"os"
@@ -18,8 +19,24 @@ var _ resource.Resource = Resource{}
 var _ resource.ResourceWithImportState = Resource{}
 
 type Resource struct {
+	Name   string
 	Schema schema.Schema
 	Client client.Client
+}
+
+func (r Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = r.Name
+}
+
+func (r Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	schema, err := r.Schema.ToTerraformResourceSchema()
+	if err != nil {
+		diags.Append(diag.NewErrorDiagnostic("failed to build data source schea", err.Error()))
+	}
+
+	return schema, diags
 }
 
 func (r Resource) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
