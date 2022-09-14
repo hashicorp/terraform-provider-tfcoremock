@@ -5,7 +5,6 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-provider-mock/internal/client"
@@ -30,14 +29,14 @@ func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, re
 
 	data, err := d.Client.ReadDataSource(ctx, resource.GetId())
 	if err != nil {
-		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to read data source", err.Error()))
+		response.Diagnostics.AddError("failed to read data source", err.Error())
 		return
 	}
 
 	if data == nil {
-		response.Diagnostics.Append(diag.NewErrorDiagnostic(
+		response.Diagnostics.AddError(
 			"target data source does not exist",
-			fmt.Sprintf("data source at %s could not be found in data directory", resource.GetId())))
+			fmt.Sprintf("data source at %s could not be found in data directory", resource.GetId()))
 	}
 
 	typ := request.Config.Schema.Type().TerraformType(ctx)
