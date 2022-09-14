@@ -2,6 +2,7 @@ package data
 
 import (
 	"errors"
+
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -30,6 +31,13 @@ type Resource struct {
 	Values map[string]Value `json:"values"`
 
 	objectType tftypes.Object
+}
+
+// GetId returns the ID of the resource.
+//
+// It assumes the ID value exists and is a string type.
+func (r Resource) GetId() string {
+	return *r.Values["id"].String
 }
 
 // WithType adds type information into a Resource as this is not stored as part

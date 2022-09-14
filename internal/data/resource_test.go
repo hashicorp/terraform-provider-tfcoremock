@@ -2,9 +2,10 @@ package data
 
 import (
 	"encoding/json"
-	"github.com/hashicorp/terraform-plugin-go/tftypes"
 	"math/big"
 	"testing"
+
+	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
 func TestResource_symmetry(t *testing.T) {
