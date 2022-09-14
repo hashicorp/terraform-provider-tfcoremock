@@ -5,7 +5,6 @@ import (
 	"os"
 
 	"github.com/hashicorp/go-uuid"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
@@ -34,7 +33,7 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 	if _, ok := resource.Values["id"]; !ok {
 		id, err := uuid.GenerateUUID()
 		if err != nil {
-			response.Diagnostics.Append(diag.NewErrorDiagnostic("could not generate id", err.Error()))
+			response.Diagnostics.AddError("could not generate id", err.Error())
 		}
 		resource.Values["id"] = data.Value{
 			String: &id,
@@ -42,7 +41,7 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 	}
 
 	if err := r.Client.WriteResource(ctx, resource); err != nil {
-		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to write resource", err.Error()))
+		response.Diagnostics.AddError("failed to write resource", err.Error())
 		return
 	}
 
@@ -59,10 +58,13 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 	data, err := r.Client.ReadResource(ctx, resource.GetId())
 	if err != nil {
 		if os.IsNotExist(err) {
+			// This is a bit of weird one as it means we tried to read a file
+			// that doesn't exist but Terraform thinks it does. We treat this
+			// as "drift" and let the Terraform framework handle it.
 			response.State.RemoveResource(ctx)
 			return
 		}
-		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to read resource", err.Error()))
+		response.Diagnostics.AddError("failed to read resource", err.Error())
 		return
 	}
 
@@ -78,13 +80,14 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 
 func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
 	resource := &data.Resource{}
-	response.Diagnostics.Append(request.Plan.Get(ctx, &resource)...)
+
+	response.Diagnostics.Append(request.State.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
 	if err := r.Client.UpdateResource(ctx, resource); err != nil {
-		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to update resource", err.Error()))
+		response.Diagnostics.AddError("failed to update resource", err.Error())
 		return
 	}
 
@@ -99,7 +102,7 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 	}
 
 	if err := r.Client.DeleteResource(ctx, resource.GetId()); err != nil {
-		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to delete resource", err.Error()))
+		response.Diagnostics.AddError("failed to delete resource", err.Error())
 	}
 }
 

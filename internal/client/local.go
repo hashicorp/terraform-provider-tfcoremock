@@ -51,8 +51,17 @@ func (local Local) WriteResource(ctx context.Context, value *data.Resource) erro
 	}
 
 	jsonPath := path.Join(local.ResourceDirectory, fmt.Sprintf("%s.json", value.GetId()))
+
+	// Let's just do a quick sanity check here. We are expecting the stat to
+	// return an os.IsNotExist error, we want to make sure we aren't trying to
+	// create a resource that already exists. If we don't get an error then that
+	// means we are trying to overwrite a resource when we shouldn't, and if we
+	// get anything other than an os.IsNotExist error then something even
+	// weirder is happening.
 	if _, err := os.Stat(jsonPath); err == nil {
 		return errors.New("resource with the specified id likely already exists")
+	} else if err != nil && !os.IsNotExist(err) {
+		return err
 	}
 
 	if err := os.WriteFile(jsonPath, jsonData, 0644); err != nil {
