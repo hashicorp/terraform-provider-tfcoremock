@@ -81,7 +81,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
 	resource := &data.Resource{}
 
-	response.Diagnostics.Append(request.State.Get(ctx, &resource)...)
+	response.Diagnostics.Append(request.Plan.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {
 		return
 	}

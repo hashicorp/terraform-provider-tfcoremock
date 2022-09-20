@@ -8,74 +8,135 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-provider-mock/internal/client"
+	"github.com/hashicorp/terraform-provider-mock/internal/schema/complex"
+	"github.com/hashicorp/terraform-provider-mock/internal/schema/dynamic"
+	"github.com/hashicorp/terraform-provider-mock/internal/schema/simple"
 )
 
-// Ensure provider defined types fully satisfy framework interfaces
-var _ provider.Provider = &scaffoldingProvider{}
+var _ provider.Provider = &mockProvider{}
 
-// provider satisfies the tfsdk.Provider interface and usually is included
-// with all Resource and DataSource implementations.
-type scaffoldingProvider struct {
-	// client can contain the upstream provider SDK or HTTP client used to
-	// communicate with the upstream service. Resource and DataSource
-	// implementations can then make calls using this client.
-	//
-	// TODO: If appropriate, implement upstream provider SDK or HTTP client.
-	// client vendorsdk.ExampleClient
-
-	// configured is set to true at the end of the Configure method.
-	// This can be used in Resource and DataSource implementations to verify
-	// that the provider was previously configured.
-	configured bool
-
+type mockProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
 	version string
+
+	// reader will read the dynamic resource definitions in the GetResource and
+	// GetDataSources functions.
+	reader dynamic.Reader
+
+	// client is provided to the actual resources so that their states can be
+	// recorded and written to a backend other than the terraform state.
+	client client.Client
 }
 
-// providerData can be used to store data from the Terraform configuration.
 type providerData struct {
-	Example types.String `tfsdk:"example"`
+	ResourceDirectory types.String `tfsdk:"resource_directory"`
+	DataDirectory     types.String `tfsdk:"data_directory"`
+	UseOnlyState      types.Bool   `tfsdk:"use_only_state"`
 }
 
-func (p *scaffoldingProvider) Configure(ctx context.Context, req provider.ConfigureRequest, resp *provider.ConfigureResponse) {
+func (m *mockProvider) Configure(ctx context.Context, request provider.ConfigureRequest, response *provider.ConfigureResponse) {
 	var data providerData
-	diags := req.Config.Get(ctx, &data)
-	resp.Diagnostics.Append(diags...)
-
-	if resp.Diagnostics.HasError() {
+	response.Diagnostics.Append(request.Config.Get(ctx, &data)...)
+	if response.Diagnostics.HasError() {
 		return
 	}
 
-	// Configuration values are now available.
-	// if data.Example.Null { /* ... */ }
+	if data.UseOnlyState.Value {
+		directory := "terraform.data"
+		if !data.DataDirectory.IsNull() {
+			directory = data.DataDirectory.Value
+		}
 
-	// If the upstream provider SDK or HTTP client requires configuration, such
-	// as authentication or logging, this is a great opportunity to do so.
+		m.client = client.State{
+			DataDirectory: directory,
+		}
+	} else {
+		dataDirectory := "terraform.data"
+		resourceDirectory := "terraform.resource"
 
-	p.configured = true
+		if !data.DataDirectory.IsNull() {
+			dataDirectory = data.DataDirectory.Value
+		}
+
+		if !data.ResourceDirectory.IsNull() {
+			resourceDirectory = data.ResourceDirectory.Value
+		}
+
+		m.client = client.Local{
+			ResourceDirectory: resourceDirectory,
+			DataDirectory:     dataDirectory,
+		}
+	}
 }
 
-func (p *scaffoldingProvider) GetResources(ctx context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
-	return map[string]provider.ResourceType{
-		"scaffolding_example": exampleResourceType{},
-	}, nil
+func (m *mockProvider) GetResources(ctx context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+	schemas, err := m.reader.Read()
+	if err != nil {
+		var diags diag.Diagnostics
+		diags.Append(diag.NewErrorDiagnostic("could not read dynamic resources", err.Error()))
+		return nil, diags
+	}
+
+	resources := make(map[string]provider.ResourceType)
+	for name, schema := range schemas {
+		resources[name] = resourceType{
+			Schema: schema,
+		}
+	}
+
+	resources["mock_complex_resource"] = resourceType{
+		Schema: complex.Schema(3),
+	}
+	resources["mock_simple_resource"] = resourceType{
+		Schema: simple.Schema,
+	}
+
+	return resources, nil
 }
 
-func (p *scaffoldingProvider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
-	return map[string]provider.DataSourceType{
-		"scaffolding_example": exampleDataSourceType{},
-	}, nil
+func (m *mockProvider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+	schemas, err := m.reader.Read()
+	if err != nil {
+		var diags diag.Diagnostics
+		diags.Append(diag.NewErrorDiagnostic("could not read dynamic resources", err.Error()))
+		return nil, diags
+	}
+
+	sources := make(map[string]provider.DataSourceType)
+	for name, schema := range schemas {
+		sources[name] = dataSourceType{
+			Schema: schema,
+		}
+	}
+
+	sources["mock_complex_resource"] = dataSourceType{
+		Schema: complex.Schema(3),
+	}
+	sources["mock_simple_resource"] = dataSourceType{
+		Schema: simple.Schema,
+	}
+
+	return sources, nil
 }
 
-func (p *scaffoldingProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (m *mockProvider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Attributes: map[string]tfsdk.Attribute{
-			"example": {
-				MarkdownDescription: "Example provider attribute",
-				Optional:            true,
-				Type:                types.StringType,
+			"resource_directory": {
+				Optional: true,
+				Type:     types.StringType,
+			},
+			"data_directory": {
+				Optional: true,
+				Type:     types.StringType,
+			},
+			"use_only_state": {
+				Optional: true,
+				Type:     types.BoolType,
 			},
 		},
 	}, nil
@@ -83,8 +144,19 @@ func (p *scaffoldingProvider) GetSchema(ctx context.Context) (tfsdk.Schema, diag
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &scaffoldingProvider{
+		return &mockProvider{
 			version: version,
+			// TODO(liamcervante): Turn this into an environment variable?
+			reader: dynamic.FileReader{File: "dynamic_resources.json"},
+		}
+	}
+}
+
+func NewForTesting(version string, resources string) func() provider.Provider {
+	return func() provider.Provider {
+		return &mockProvider{
+			version: version,
+			reader:  dynamic.StringReader{Data: resources},
 		}
 	}
 }
@@ -94,17 +166,17 @@ func New(version string) func() provider.Provider {
 // this helper can be skipped and the provider type can be directly type
 // asserted (e.g. provider: in.(*scaffoldingProvider)), however using this can prevent
 // potential panics.
-func convertProviderType(in provider.Provider) (scaffoldingProvider, diag.Diagnostics) {
+func convertProviderType(in provider.Provider) (mockProvider, diag.Diagnostics) {
 	var diags diag.Diagnostics
 
-	p, ok := in.(*scaffoldingProvider)
+	p, ok := in.(*mockProvider)
 
 	if !ok {
 		diags.AddError(
 			"Unexpected Provider Instance Type",
 			fmt.Sprintf("While creating the data source or resource, an unexpected provider type (%T) was received. This is always a bug in the provider code and should be reported to the provider developers.", p),
 		)
-		return scaffoldingProvider{}, diags
+		return mockProvider{}, diags
 	}
 
 	if p == nil {
@@ -112,7 +184,7 @@ func convertProviderType(in provider.Provider) (scaffoldingProvider, diag.Diagno
 			"Unexpected Provider Instance Type",
 			"While creating the data source or resource, an unexpected empty provider instance was received. This is always a bug in the provider code and should be reported to the provider developers.",
 		)
-		return scaffoldingProvider{}, diags
+		return mockProvider{}, diags
 	}
 
 	return *p, diags

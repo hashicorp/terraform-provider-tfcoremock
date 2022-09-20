@@ -31,38 +31,78 @@ type Attribute struct {
 func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 	switch a.Type {
 	case Boolean:
-		return a.toTerraformAttribute(types.BoolType), nil
+		return a.toSimpleTerraformAttribute(types.BoolType), nil
 	case Float:
-		return a.toTerraformAttribute(types.Float64Type), nil
+		return a.toSimpleTerraformAttribute(types.Float64Type), nil
 	case Integer:
-		return a.toTerraformAttribute(types.Int64Type), nil
+		return a.toSimpleTerraformAttribute(types.Int64Type), nil
 	case Number:
-		return a.toTerraformAttribute(types.NumberType), nil
+		return a.toSimpleTerraformAttribute(types.NumberType), nil
 	case String:
-		return a.toTerraformAttribute(types.StringType), nil
+		return a.toSimpleTerraformAttribute(types.StringType), nil
 	case List:
+		if a.List.Type == Object {
+			attributes, err := attributesToTerraformAttributes(a.List.Object)
+			if err != nil {
+				return tfsdk.Attribute{}, nil
+			}
+
+			return tfsdk.Attribute{
+				Optional:   a.Optional,
+				Required:   a.Required,
+				Computed:   a.Computed,
+				Attributes: tfsdk.ListNestedAttributes(attributes),
+			}, nil
+		}
 		attribute, err := a.List.ToTerraformAttribute()
 		if err != nil {
 			return tfsdk.Attribute{}, nil
 		}
-		return a.toTerraformAttribute(types.ListType{ElemType: attribute.Type}), nil
+		return a.toSimpleTerraformAttribute(types.ListType{ElemType: attribute.Type}), nil
 	case Map:
+		if a.Map.Type == Object {
+			attributes, err := attributesToTerraformAttributes(a.Map.Object)
+			if err != nil {
+				return tfsdk.Attribute{}, nil
+			}
+
+			return tfsdk.Attribute{
+				Optional:   a.Optional,
+				Required:   a.Required,
+				Computed:   a.Computed,
+				Attributes: tfsdk.MapNestedAttributes(attributes),
+			}, nil
+		}
 		attribute, err := a.Map.ToTerraformAttribute()
 		if err != nil {
 			return tfsdk.Attribute{}, nil
 		}
-		return a.toTerraformAttribute(types.MapType{ElemType: attribute.Type}), nil
+		return a.toSimpleTerraformAttribute(types.MapType{ElemType: attribute.Type}), nil
 	case Set:
+		if a.Set.Type == Object {
+			attributes, err := attributesToTerraformAttributes(a.Set.Object)
+			if err != nil {
+				return tfsdk.Attribute{}, nil
+			}
+
+			return tfsdk.Attribute{
+				Optional:   a.Optional,
+				Required:   a.Required,
+				Computed:   a.Computed,
+				Attributes: tfsdk.SetNestedAttributes(attributes),
+			}, nil
+		}
 		attribute, err := a.Set.ToTerraformAttribute()
 		if err != nil {
 			return tfsdk.Attribute{}, nil
 		}
-		return a.toTerraformAttribute(types.SetType{ElemType: attribute.Type}), nil
+		return a.toSimpleTerraformAttribute(types.SetType{ElemType: attribute.Type}), nil
 	case Object:
 		attributes, err := attributesToTerraformAttributes(a.Object)
 		if err != nil {
 			return tfsdk.Attribute{}, err
 		}
+
 		return tfsdk.Attribute{
 			Optional:   a.Optional,
 			Required:   a.Required,
@@ -74,7 +114,7 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 	}
 }
 
-func (a Attribute) toTerraformAttribute(t attr.Type) tfsdk.Attribute {
+func (a Attribute) toSimpleTerraformAttribute(t attr.Type) tfsdk.Attribute {
 	return tfsdk.Attribute{
 		Optional: a.Optional,
 		Required: a.Required,

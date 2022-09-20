@@ -55,7 +55,7 @@ func (r *Resource) WithType(objectType tftypes.Object) *Resource {
 // ToTerraform5Value ensures that Resource implements the tftypes.ValueCreator
 // interface, and so can be converted into Terraform types easily.
 func (r Resource) ToTerraform5Value() (interface{}, error) {
-	return objectToTerraform5Value(r.Values, r.objectType)
+	return objectToTerraform5Value(&r.Values, r.objectType)
 }
 
 // FromTerraform5Value ensures that Resource implements the
@@ -74,7 +74,7 @@ func (r *Resource) FromTerraform5Value(value tftypes.Value) error {
 
 	// We know these kinds of conversions are safe now, as we checked the type
 	// at the beginning.
-	r.Values = values.Object
+	r.Values = *values.Object
 	r.objectType = value.Type().(tftypes.Object)
 	return nil
 }
