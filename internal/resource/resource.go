@@ -33,7 +33,7 @@ func (r Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics
 
 	schema, err := r.Schema.ToTerraformResourceSchema()
 	if err != nil {
-		diags.Append(diag.NewErrorDiagnostic("failed to build data source schea", err.Error()))
+		diags.Append(diag.NewErrorDiagnostic("failed to build resource schema", err.Error()))
 	}
 
 	return schema, diags
