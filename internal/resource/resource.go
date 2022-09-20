@@ -70,10 +70,13 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 	data, err := r.Client.ReadResource(ctx, resource.GetId())
 	if err != nil {
 		if os.IsNotExist(err) {
+			// This is a bit of weird one as it means we tried to read a file
+			// that doesn't exist but Terraform thinks it does. We treat this
+			// as "drift" and let the Terraform framework handle it.
 			response.State.RemoveResource(ctx)
 			return
 		}
-		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to read resource", err.Error()))
+		response.Diagnostics.AddError("failed to read resource", err.Error())
 		return
 	}
 
@@ -89,13 +92,14 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 
 func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
 	resource := &data.Resource{}
+
 	response.Diagnostics.Append(request.Plan.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
 	if err := r.Client.UpdateResource(ctx, resource); err != nil {
-		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to update resource", err.Error()))
+		response.Diagnostics.AddError("failed to update resource", err.Error())
 		return
 	}
 
@@ -110,7 +114,7 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 	}
 
 	if err := r.Client.DeleteResource(ctx, resource.GetId()); err != nil {
-		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to delete resource", err.Error()))
+		response.Diagnostics.AddError("failed to delete resource", err.Error())
 	}
 }
 
