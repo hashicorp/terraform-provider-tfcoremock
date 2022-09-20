@@ -10,7 +10,7 @@ import (
 )
 
 func TestAccComplexResource(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(""),
 		Steps: []resource.TestStep{
@@ -44,7 +44,7 @@ func TestAccComplexResource(t *testing.T) {
 }
 
 func TestAccComplexResourceWithBlocks(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(""),
 		Steps: []resource.TestStep{
@@ -74,7 +74,7 @@ func TestAccComplexResourceWithBlocks(t *testing.T) {
 }
 
 func TestAccDynamicResource(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic/dynamic_resources.json")),
 		Steps: []resource.TestStep{
@@ -94,7 +94,7 @@ func TestAccDynamicResource(t *testing.T) {
 }
 
 func TestAccDynamicResourceNested(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic_nested/dynamic_resources.json")),
 		Steps: []resource.TestStep{
@@ -114,7 +114,7 @@ func TestAccDynamicResourceNested(t *testing.T) {
 }
 
 func TestAccDynamicResourceWithBlocks(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic_block/dynamic_resources.json")),
 		Steps: []resource.TestStep{
@@ -141,7 +141,7 @@ func TestAccDynamicResourceWithBlocks(t *testing.T) {
 }
 
 func TestAccDynamicResourceWithId(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic/dynamic_resources.json")),
 		Steps: []resource.TestStep{
@@ -165,7 +165,7 @@ func TestAccDynamicResourceWithId(t *testing.T) {
 }
 
 func TestAccSimpleDataSource(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(""),
 		Steps: []resource.TestStep{
@@ -178,7 +178,7 @@ func TestAccSimpleDataSource(t *testing.T) {
 }
 
 func TestAccSimpleResource(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(""),
 		Steps: []resource.TestStep{
@@ -198,7 +198,7 @@ func TestAccSimpleResource(t *testing.T) {
 }
 
 func TestAccSimpleResourceWithDrift(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(""),
 		Steps: []resource.TestStep{
@@ -222,7 +222,7 @@ func TestAccSimpleResourceWithDrift(t *testing.T) {
 }
 
 func TestAccSimpleResourceWithId(t *testing.T) {
-	defer CleanupTestingDirectories(t)
+	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(""),
 		Steps: []resource.TestStep{
