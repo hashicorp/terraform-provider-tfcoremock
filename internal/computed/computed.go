@@ -2,10 +2,12 @@ package computed
 
 import (
 	"errors"
+	"math/big"
+
 	"github.com/hashicorp/go-uuid"
+
 	"github.com/hashicorp/terraform-provider-mock/internal/data"
 	"github.com/hashicorp/terraform-provider-mock/internal/schema"
-	"math/big"
 )
 
 // GenerateComputedValues steps through the resource and uses the schema to
