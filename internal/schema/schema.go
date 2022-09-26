@@ -17,6 +17,22 @@ type Schema struct {
 	Blocks     map[string]Block     `json:"blocks"`
 }
 
+// AllAttributes returns the attributes for the dynamic schema, plus the
+// required ID attribute that is attached to tfsdk.Schema objects automatically.
+func (schema Schema) AllAttributes() map[string]Attribute {
+	attributes := make(map[string]Attribute, 0)
+	for key, attribute := range schema.Attributes {
+		attributes[key] = attribute
+	}
+	attributes["id"] = Attribute{
+		Type:     String,
+		Optional: false,
+		Required: false,
+		Computed: true,
+	}
+	return attributes
+}
+
 // ToTerraformResourceSchema converts out representation of a Schema into a
 // Terraform SDK tfsdk.Schema. It automatically creates and attaches a computed
 // type called `id` that is required by every resource and data source in this

@@ -1,0 +1,69 @@
+{
+  "mock_dynamic_resource": {
+    "attributes": {
+      "computed_list": {
+        "type": "list",
+        "computed": true,
+        "list": {
+          "type": "integer"
+        }
+      },
+      "computed_object": {
+        "type": "object",
+        "computed": true,
+        "object": {
+          "id": {
+            "type": "string",
+            "computed": true
+          }
+        }
+      },
+      "set": {
+        "type": "set",
+        "required": true,
+        "set": {
+          "type": "object",
+          "object": {
+            "id": {
+              "type": "string",
+              "computed": true
+            },
+            "optional-id": {
+              "type": "string",
+              "computed": true,
+              "optional": true
+            },
+            "custom-value": {
+              "type": "string",
+              "required": true
+            }
+          }
+        }
+      },
+      "object_with_value": {
+        "type": "object",
+        "computed": true,
+        "object": {
+          "boolean": {
+            "type": "boolean",
+            "optional": true
+          },
+          "string": {
+            "type": "string",
+            "optional": true
+          }
+        },
+        "value": {
+          "object": {
+            "boolean": {
+              "boolean": true
+            },
+            "string": {
+              "string": "hello"
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -4,8 +4,11 @@ import (
 	"errors"
 
 	"github.com/hashicorp/terraform-plugin-framework/attr"
+	"github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+
+	"github.com/hashicorp/terraform-provider-mock/internal/data"
 )
 
 // Attribute defines an internal representation of a Terraform attribute in a
@@ -19,6 +22,8 @@ type Attribute struct {
 	Required bool `json:"required"`
 	Computed bool `json:"computed"`
 
+	Value *data.Value `json:"value,omitempty"`
+
 	List   *Attribute           `json:"list,omitempty"`
 	Map    *Attribute           `json:"map,omitempty"`
 	Object map[string]Attribute `json:"object,omitempty"`
@@ -31,96 +36,102 @@ type Attribute struct {
 func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 	switch a.Type {
 	case Boolean:
-		return a.toSimpleTerraformAttribute(types.BoolType), nil
+		return withType(a.getTerraformAttribute(), types.BoolType), nil
 	case Float:
-		return a.toSimpleTerraformAttribute(types.Float64Type), nil
+		return withType(a.getTerraformAttribute(), types.Float64Type), nil
 	case Integer:
-		return a.toSimpleTerraformAttribute(types.Int64Type), nil
+		return withType(a.getTerraformAttribute(), types.Int64Type), nil
 	case Number:
-		return a.toSimpleTerraformAttribute(types.NumberType), nil
+		return withType(a.getTerraformAttribute(), types.NumberType), nil
 	case String:
-		return a.toSimpleTerraformAttribute(types.StringType), nil
+		return withType(a.getTerraformAttribute(), types.StringType), nil
 	case List:
 		if a.List.Type == Object {
 			attributes, err := attributesToTerraformAttributes(a.List.Object)
 			if err != nil {
 				return tfsdk.Attribute{}, nil
 			}
-
-			return tfsdk.Attribute{
-				Optional:   a.Optional,
-				Required:   a.Required,
-				Computed:   a.Computed,
-				Attributes: tfsdk.ListNestedAttributes(attributes),
-			}, nil
+			return asList(a.getTerraformAttribute(), attributes), nil
 		}
 		attribute, err := a.List.ToTerraformAttribute()
 		if err != nil {
 			return tfsdk.Attribute{}, nil
 		}
-		return a.toSimpleTerraformAttribute(types.ListType{ElemType: attribute.Type}), nil
+		return withType(a.getTerraformAttribute(), types.ListType{ElemType: attribute.Type}), nil
 	case Map:
 		if a.Map.Type == Object {
 			attributes, err := attributesToTerraformAttributes(a.Map.Object)
 			if err != nil {
 				return tfsdk.Attribute{}, nil
 			}
-
-			return tfsdk.Attribute{
-				Optional:   a.Optional,
-				Required:   a.Required,
-				Computed:   a.Computed,
-				Attributes: tfsdk.MapNestedAttributes(attributes),
-			}, nil
+			return asMap(a.getTerraformAttribute(), attributes), nil
 		}
 		attribute, err := a.Map.ToTerraformAttribute()
 		if err != nil {
 			return tfsdk.Attribute{}, nil
 		}
-		return a.toSimpleTerraformAttribute(types.MapType{ElemType: attribute.Type}), nil
+		return withType(a.getTerraformAttribute(), types.MapType{ElemType: attribute.Type}), nil
 	case Set:
 		if a.Set.Type == Object {
 			attributes, err := attributesToTerraformAttributes(a.Set.Object)
 			if err != nil {
 				return tfsdk.Attribute{}, nil
 			}
-
-			return tfsdk.Attribute{
-				Optional:   a.Optional,
-				Required:   a.Required,
-				Computed:   a.Computed,
-				Attributes: tfsdk.SetNestedAttributes(attributes),
-			}, nil
+			return asSet(a.getTerraformAttribute(), attributes), nil
 		}
 		attribute, err := a.Set.ToTerraformAttribute()
 		if err != nil {
 			return tfsdk.Attribute{}, nil
 		}
-		return a.toSimpleTerraformAttribute(types.SetType{ElemType: attribute.Type}), nil
+		return withType(a.getTerraformAttribute(), types.SetType{ElemType: attribute.Type}), nil
 	case Object:
 		attributes, err := attributesToTerraformAttributes(a.Object)
 		if err != nil {
 			return tfsdk.Attribute{}, err
 		}
-
-		return tfsdk.Attribute{
-			Optional:   a.Optional,
-			Required:   a.Required,
-			Computed:   a.Computed,
-			Attributes: tfsdk.SingleNestedAttributes(attributes),
-		}, nil
+		return asObject(a.getTerraformAttribute(), attributes), nil
 	default:
 		return tfsdk.Attribute{}, errors.New("unrecognized attribute type: " + string(a.Type))
 	}
 }
 
-func (a Attribute) toSimpleTerraformAttribute(t attr.Type) tfsdk.Attribute {
-	return tfsdk.Attribute{
+func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
+	attribute := tfsdk.Attribute{
 		Optional: a.Optional,
 		Required: a.Required,
 		Computed: a.Computed,
-		Type:     t,
 	}
+
+	if a.Computed {
+		attribute.PlanModifiers = append(attribute.PlanModifiers, resource.UseStateForUnknown())
+	}
+
+	return attribute
+}
+
+func withType(attribute tfsdk.Attribute, t attr.Type) tfsdk.Attribute {
+	attribute.Type = t
+	return attribute
+}
+
+func asObject(attribute tfsdk.Attribute, attributes map[string]tfsdk.Attribute) tfsdk.Attribute {
+	attribute.Attributes = tfsdk.SingleNestedAttributes(attributes)
+	return attribute
+}
+
+func asList(attribute tfsdk.Attribute, attributes map[string]tfsdk.Attribute) tfsdk.Attribute {
+	attribute.Attributes = tfsdk.ListNestedAttributes(attributes)
+	return attribute
+}
+
+func asSet(attribute tfsdk.Attribute, attributes map[string]tfsdk.Attribute) tfsdk.Attribute {
+	attribute.Attributes = tfsdk.SetNestedAttributes(attributes)
+	return attribute
+}
+
+func asMap(attribute tfsdk.Attribute, attributes map[string]tfsdk.Attribute) tfsdk.Attribute {
+	attribute.Attributes = tfsdk.MapNestedAttributes(attributes)
+	return attribute
 }
 
 func attributesToTerraformAttributes(attributes map[string]Attribute) (map[string]tfsdk.Attribute, error) {
