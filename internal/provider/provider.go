@@ -2,15 +2,18 @@ package provider
 
 import (
 	"context"
-	"fmt"
 	"strings"
 
+	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
+	"github.com/hashicorp/terraform-plugin-log/tflog"
 
 	"github.com/hashicorp/terraform-provider-mock/internal/client"
+	"github.com/hashicorp/terraform-provider-mock/internal/resource"
 	"github.com/hashicorp/terraform-provider-mock/internal/schema/complex"
 	"github.com/hashicorp/terraform-provider-mock/internal/schema/dynamic"
 	"github.com/hashicorp/terraform-provider-mock/internal/schema/simple"
@@ -106,54 +109,78 @@ func (m *mockProvider) Configure(ctx context.Context, request provider.Configure
 	}
 }
 
-func (m *mockProvider) GetResources(ctx context.Context) (map[string]provider.ResourceType, diag.Diagnostics) {
+func (m *mockProvider) Resources(ctx context.Context) []func() tfresource.Resource {
 	schemas, err := m.reader.Read()
 	if err != nil {
-		var diags diag.Diagnostics
-		diags.Append(diag.NewErrorDiagnostic("could not read dynamic resources", err.Error()))
-		return nil, diags
+		tflog.Error(ctx, err.Error())
+		return nil
 	}
 
-	resources := make(map[string]provider.ResourceType)
+	resources := []func() tfresource.Resource{
+		func() tfresource.Resource {
+			return resource.Resource{
+				Name:   "mock_complex_resource",
+				Schema: complex.Schema(3),
+				Client: m.client,
+			}
+		},
+		func() tfresource.Resource {
+			return resource.Resource{
+				Name:   "mock_simple_resource",
+				Schema: simple.Schema,
+				Client: m.client,
+			}
+		},
+	}
+
 	for name, schema := range schemas {
-		resources[name] = resourceType{
-			Schema: schema,
-		}
+		resources = append(resources, func() tfresource.Resource {
+			return resource.Resource{
+				Name:   name,
+				Schema: schema,
+				Client: m.client,
+			}
+		})
 	}
 
-	resources["mock_complex_resource"] = resourceType{
-		Schema: complex.Schema(3),
-	}
-	resources["mock_simple_resource"] = resourceType{
-		Schema: simple.Schema,
-	}
-
-	return resources, nil
+	return resources
 }
 
-func (m *mockProvider) GetDataSources(ctx context.Context) (map[string]provider.DataSourceType, diag.Diagnostics) {
+func (m *mockProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	schemas, err := m.reader.Read()
 	if err != nil {
-		var diags diag.Diagnostics
-		diags.Append(diag.NewErrorDiagnostic("could not read dynamic resources", err.Error()))
-		return nil, diags
+		tflog.Error(ctx, err.Error())
+		return nil
 	}
 
-	sources := make(map[string]provider.DataSourceType)
+	datasources := []func() datasource.DataSource{
+		func() datasource.DataSource {
+			return resource.DataSource{
+				Name:   "mock_complex_resource",
+				Schema: complex.Schema(3),
+				Client: m.client,
+			}
+		},
+		func() datasource.DataSource {
+			return resource.DataSource{
+				Name:   "mock_simple_resource",
+				Schema: simple.Schema,
+				Client: m.client,
+			}
+		},
+	}
+
 	for name, schema := range schemas {
-		sources[name] = dataSourceType{
-			Schema: schema,
-		}
+		datasources = append(datasources, func() datasource.DataSource {
+			return resource.DataSource{
+				Name:   name,
+				Schema: schema,
+				Client: m.client,
+			}
+		})
 	}
 
-	sources["mock_complex_resource"] = dataSourceType{
-		Schema: complex.Schema(3),
-	}
-	sources["mock_simple_resource"] = dataSourceType{
-		Schema: simple.Schema,
-	}
-
-	return sources, nil
+	return datasources
 }
 
 func (m *mockProvider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
@@ -200,33 +227,4 @@ func NewForTesting(version string, resources string) func() provider.Provider {
 			reader:  dynamic.StringReader{Data: resources},
 		}
 	}
-}
-
-// convertProviderType is a helper function for NewResource and NewDataSource
-// implementations to associate the concrete provider type. Alternatively,
-// this helper can be skipped and the provider type can be directly type
-// asserted (e.g. provider: in.(*scaffoldingProvider)), however using this can prevent
-// potential panics.
-func convertProviderType(in provider.Provider) (mockProvider, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	p, ok := in.(*mockProvider)
-
-	if !ok {
-		diags.AddError(
-			"Unexpected Provider Instance Type",
-			fmt.Sprintf("While creating the data source or resource, an unexpected provider type (%T) was received. This is always a bug in the provider code and should be reported to the provider developers.", p),
-		)
-		return mockProvider{}, diags
-	}
-
-	if p == nil {
-		diags.AddError(
-			"Unexpected Provider Instance Type",
-			"While creating the data source or resource, an unexpected empty provider instance was received. This is always a bug in the provider code and should be reported to the provider developers.",
-		)
-		return mockProvider{}, diags
-	}
-
-	return *p, diags
 }

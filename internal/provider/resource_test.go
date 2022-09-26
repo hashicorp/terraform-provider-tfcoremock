@@ -140,6 +140,75 @@ func TestAccDynamicResourceWithBlocks(t *testing.T) {
 	})
 }
 
+func TestAccDynamicResourceWithComputed(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic_computed/dynamic_resources.json")),
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/dynamic_computed/create/main.tf"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "object_with_value.boolean", "true"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "object_with_value.string", "hello"),
+					resource.TestCheckResourceAttrSet("mock_dynamic_resource.test", "computed_object.id"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "computed_list.#", "0"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "set.#", "3"),
+					resource.TestCheckResourceAttrSet("mock_dynamic_resource.test", "set.0.id"),
+					resource.TestCheckResourceAttrSet("mock_dynamic_resource.test", "set.1.id"),
+					resource.TestCheckResourceAttrSet("mock_dynamic_resource.test", "set.2.id")),
+			},
+			{
+				Config: LoadFile(t, "testdata/dynamic/delete/main.tf"),
+			},
+		},
+	})
+}
+
+func TestAccDynamicResourceWithComputedBlocks(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic_computed_block/dynamic_resources.json")),
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/dynamic_computed_block/create/main.tf"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "other.#", "2"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "other.0.id", "my-id"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "other.0.nested.#", "2"),
+					resource.TestCheckResourceAttrSet("mock_dynamic_resource.test", "other.0.nested.0.id"),
+					resource.TestCheckResourceAttrSet("mock_dynamic_resource.test", "other.0.nested.1.id"),
+					resource.TestCheckResourceAttrSet("mock_dynamic_resource.test", "other.1.id"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "object.#", "0")),
+			},
+			{
+				Config: LoadFile(t, "testdata/dynamic/delete/main.tf"),
+			},
+		},
+	})
+}
+
+func TestAccDynamicResourceWithComputedSetBlocks(t *testing.T) {
+	// TODO(liamcervante): Investigate and enable this test case.
+	// This is the same as above with the nested block being a set instead of
+	// a list. I don't think there's any difference in the way my provider
+	// handles this so I think it's a bug in the framework.
+	// https://github.com/hashicorp/terraform-plugin-framework/issues/483
+	t.Skip()
+
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic_computed_block_set/dynamic_resources.json")),
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/dynamic_computed_block_set/create/main.tf"),
+			},
+			{
+				Config: LoadFile(t, "testdata/dynamic/delete/main.tf"),
+			},
+		},
+	})
+}
+
 func TestAccDynamicResourceWithId(t *testing.T) {
 	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{

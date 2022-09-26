@@ -4,10 +4,13 @@ import (
 	"context"
 	"os"
 
-	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
+
+	"github.com/hashicorp/terraform-provider-mock/internal/computed"
 
 	"github.com/hashicorp/terraform-provider-mock/internal/client"
 	"github.com/hashicorp/terraform-provider-mock/internal/data"
@@ -18,8 +21,24 @@ var _ resource.Resource = Resource{}
 var _ resource.ResourceWithImportState = Resource{}
 
 type Resource struct {
+	Name   string
 	Schema schema.Schema
 	Client client.Client
+}
+
+func (r Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
+	response.TypeName = r.Name
+}
+
+func (r Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	schema, err := r.Schema.ToTerraformResourceSchema()
+	if err != nil {
+		diags.Append(diag.NewErrorDiagnostic("failed to build resource schema", err.Error()))
+	}
+
+	return schema, diags
 }
 
 func (r Resource) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
@@ -29,23 +48,18 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 		return
 	}
 
-	// Generate the ID for this resource if it doesn't exist already.
-	if _, ok := resource.Values["id"]; !ok {
-		id, err := uuid.GenerateUUID()
-		if err != nil {
-			response.Diagnostics.AddError("could not generate id", err.Error())
-		}
-		resource.Values["id"] = data.Value{
-			String: &id,
-		}
-	}
-
-	if err := r.Client.WriteResource(ctx, resource); err != nil {
-		response.Diagnostics.AddError("failed to write resource", err.Error())
+	if err := computed.GenerateComputedValues(resource, r.Schema); err != nil {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to generate computed values", err.Error()))
 		return
 	}
 
-	response.Diagnostics.Append(response.State.Set(ctx, resource)...)
+	if err := r.Client.WriteResource(ctx, resource); err != nil {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to write resource", err.Error()))
+		return
+	}
+
+	diags := response.State.Set(ctx, resource)
+	response.Diagnostics.Append(diags...)
 }
 
 func (r Resource) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
