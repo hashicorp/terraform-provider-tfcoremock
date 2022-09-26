@@ -25,19 +25,6 @@ The complex and block types are nested 3 times, at the leaf level of recursion t
 ## Example Usage
 
 ```terraform
-terraform {
-  required_providers {
-    mock = {
-      source  = "terraform.local/local/mock"
-      version = "0.0.1"
-    }
-  }
-}
-
-provider "mock" {
-
-}
-
 resource "mock_complex_resource" "example" {
   id = "my-complex-resource"
 

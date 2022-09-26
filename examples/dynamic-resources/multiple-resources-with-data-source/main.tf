@@ -1,16 +1,3 @@
-terraform {
-  required_providers {
-    mock = {
-      source  = "terraform.local/local/mock"
-      version = "0.0.1"
-    }
-  }
-}
-
-provider "mock" {
-
-}
-
 data "mock_string_data_source" "example" {
   id = "data_source"
 }
