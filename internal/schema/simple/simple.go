@@ -3,27 +3,42 @@ package simple
 import "github.com/hashicorp/terraform-provider-mock/internal/schema"
 
 var (
+	description         = "A simple resource that holds optional attributes for the five basic types: bool, number, string, float and integer."
+	markdownDescription = "A simple resource that holds optional attributes for the five basic types: `bool`, `number`, `string`, `float`, and `integer`."
+
 	Schema = schema.Schema{
+		Description:         description,
+		MarkdownDescription: markdownDescription,
 		Attributes: map[string]schema.Attribute{
 			"bool": {
-				Optional: true,
-				Type:     schema.Boolean,
+				Description:         "An optional boolean attribute, can be true or false.",
+				MarkdownDescription: "An optional boolean attribute, can be true or false.",
+				Optional:            true,
+				Type:                schema.Boolean,
 			},
 			"number": {
-				Optional: true,
-				Type:     schema.Number,
+				Description:         "An optional number attribute, can be an integer or a float.",
+				MarkdownDescription: "An optional number attribute, can be an integer or a float.",
+				Optional:            true,
+				Type:                schema.Number,
 			},
 			"string": {
-				Optional: true,
-				Type:     schema.String,
+				Description:         "An optional string attribute.",
+				MarkdownDescription: "An optional string attribute.",
+				Optional:            true,
+				Type:                schema.String,
 			},
 			"float": {
-				Optional: true,
-				Type:     schema.Float,
+				Description:         "An optional float attribute.",
+				MarkdownDescription: "An optional float attribute.",
+				Optional:            true,
+				Type:                schema.Float,
 			},
 			"integer": {
-				Optional: true,
-				Type:     schema.Integer,
+				Description:         "An optional integer attribute.",
+				MarkdownDescription: "An optional integer attribute.",
+				Optional:            true,
+				Type:                schema.Integer,
 			},
 		},
 	}

@@ -1,0 +1,10 @@
+{
+  "values": {
+    "id": {
+      "string": "data_source"
+    },
+    "my_value": {
+      "string": "Hello, world!"
+    }
+  }
+}

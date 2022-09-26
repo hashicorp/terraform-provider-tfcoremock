@@ -1,0 +1,13 @@
+{
+  "mock_dynamic_resource": {
+    "attributes": {
+      "my_values": {
+        "type": "list",
+        "required": true,
+        "list": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

@@ -14,6 +14,9 @@ import (
 // It is designed to be read dynamically from a JSON object, allowing schemas,
 // blocks and attributes to be defined dynamically by the user of the provider.
 type Attribute struct {
+	Description         string `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.
+	MarkdownDescription string `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.
+
 	Type     Type `json:"type"`
 	Optional bool `json:"optional"`
 	Required bool `json:"required"`
@@ -48,10 +51,12 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 			}
 
 			return tfsdk.Attribute{
-				Optional:   a.Optional,
-				Required:   a.Required,
-				Computed:   a.Computed,
-				Attributes: tfsdk.ListNestedAttributes(attributes),
+				Description:         a.Description,
+				MarkdownDescription: a.MarkdownDescription,
+				Optional:            a.Optional,
+				Required:            a.Required,
+				Computed:            a.Computed,
+				Attributes:          tfsdk.ListNestedAttributes(attributes),
 			}, nil
 		}
 		attribute, err := a.List.ToTerraformAttribute()
@@ -67,10 +72,12 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 			}
 
 			return tfsdk.Attribute{
-				Optional:   a.Optional,
-				Required:   a.Required,
-				Computed:   a.Computed,
-				Attributes: tfsdk.MapNestedAttributes(attributes),
+				Description:         a.Description,
+				MarkdownDescription: a.MarkdownDescription,
+				Optional:            a.Optional,
+				Required:            a.Required,
+				Computed:            a.Computed,
+				Attributes:          tfsdk.MapNestedAttributes(attributes),
 			}, nil
 		}
 		attribute, err := a.Map.ToTerraformAttribute()
@@ -86,10 +93,12 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 			}
 
 			return tfsdk.Attribute{
-				Optional:   a.Optional,
-				Required:   a.Required,
-				Computed:   a.Computed,
-				Attributes: tfsdk.SetNestedAttributes(attributes),
+				Description:         a.Description,
+				MarkdownDescription: a.MarkdownDescription,
+				Optional:            a.Optional,
+				Required:            a.Required,
+				Computed:            a.Computed,
+				Attributes:          tfsdk.SetNestedAttributes(attributes),
 			}, nil
 		}
 		attribute, err := a.Set.ToTerraformAttribute()
@@ -104,10 +113,12 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 		}
 
 		return tfsdk.Attribute{
-			Optional:   a.Optional,
-			Required:   a.Required,
-			Computed:   a.Computed,
-			Attributes: tfsdk.SingleNestedAttributes(attributes),
+			Description:         a.Description,
+			MarkdownDescription: a.MarkdownDescription,
+			Optional:            a.Optional,
+			Required:            a.Required,
+			Computed:            a.Computed,
+			Attributes:          tfsdk.SingleNestedAttributes(attributes),
 		}, nil
 	default:
 		return tfsdk.Attribute{}, errors.New("unrecognized attribute type: " + string(a.Type))
@@ -116,10 +127,12 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 
 func (a Attribute) toSimpleTerraformAttribute(t attr.Type) tfsdk.Attribute {
 	return tfsdk.Attribute{
-		Optional: a.Optional,
-		Required: a.Required,
-		Computed: a.Computed,
-		Type:     t,
+		Description:         a.Description,
+		MarkdownDescription: a.MarkdownDescription,
+		Optional:            a.Optional,
+		Required:            a.Required,
+		Computed:            a.Computed,
+		Type:                t,
 	}
 }
 

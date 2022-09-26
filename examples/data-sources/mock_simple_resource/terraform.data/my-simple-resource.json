@@ -1,0 +1,22 @@
+{
+  "values": {
+    "bool": {
+      "boolean": true
+    },
+    "float": {
+      "number": "0"
+    },
+    "id": {
+      "string": "my-simple-resource"
+    },
+    "integer": {
+      "number": "0"
+    },
+    "number": {
+      "number": "0"
+    },
+    "string": {
+      "string": "Hello, world!"
+    }
+  }
+}
