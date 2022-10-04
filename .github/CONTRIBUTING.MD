@@ -2,9 +2,6 @@
 
 **First:** if you're unsure or afraid of _anything_, just ask or submit the issue describing the problem you're aiming to solve.
 
-The `mock` provider is a HashiCorp *standard library* provider, which means we consider it part of the core Terraform experience. Our priority is stability and correctness, and any bug fix or feature has to be considered in the context of this provider's many users and the wider Terraform ecosystem.
-This is great as your contribution can have a big positive impact, but we have to assess potential negative impact too.
-
 To provide some safety to the Terraform ecosystem, we strictly follow [semantic versioning](https://semver.org/) and any changes that could be considered as breaking will only be released as part of a major release.
 
 ## Table of Contents
