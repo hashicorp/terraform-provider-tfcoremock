@@ -16,6 +16,9 @@ const (
 // It is designed to be read dynamically from a JSON object, allowing schemas,
 // blocks and attributes to be defined dynamically by the user of the provider.
 type Block struct {
+	Description         string `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.
+	MarkdownDescription string `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.
+
 	Attributes map[string]Attribute `json:"attributes"`
 	Blocks     map[string]Block     `json:"blocks"`
 	Mode       string               `json:"mode"`
@@ -47,15 +50,19 @@ func (b Block) ToTerraformBlock() (tfsdk.Block, error) {
 	switch b.Mode {
 	case "", NestingModeList:
 		return tfsdk.Block{
-			Attributes:  tfAttributes,
-			Blocks:      tfBlocks,
-			NestingMode: tfsdk.BlockNestingModeList,
+			Description:         b.Description,
+			MarkdownDescription: b.MarkdownDescription,
+			Attributes:          tfAttributes,
+			Blocks:              tfBlocks,
+			NestingMode:         tfsdk.BlockNestingModeList,
 		}, nil
 	case NestingModeSet:
 		return tfsdk.Block{
-			Attributes:  tfAttributes,
-			Blocks:      tfBlocks,
-			NestingMode: tfsdk.BlockNestingModeSet,
+			Description:         b.Description,
+			MarkdownDescription: b.MarkdownDescription,
+			Attributes:          tfAttributes,
+			Blocks:              tfBlocks,
+			NestingMode:         tfsdk.BlockNestingModeSet,
 		}, nil
 	default:
 		return tfsdk.Block{}, errors.New("invalid nesting mode: " + b.Mode)

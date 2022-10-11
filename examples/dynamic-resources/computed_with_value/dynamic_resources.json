@@ -1,0 +1,13 @@
+{
+  "mock_dynamic_resource": {
+    "attributes": {
+      "my_value": {
+        "type": "string",
+        "computed": true,
+        "value": {
+          "string": "my_generated_value"
+        }
+      }
+    }
+  }
+}

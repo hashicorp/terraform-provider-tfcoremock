@@ -13,8 +13,10 @@ import (
 // It is designed to be read dynamically from a JSON object, allowing schemas,
 // blocks and attributes to be defined dynamically by the user of the provider.
 type Schema struct {
-	Attributes map[string]Attribute `json:"attributes"`
-	Blocks     map[string]Block     `json:"blocks"`
+	Description         string               `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.
+	MarkdownDescription string               `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.
+	Attributes          map[string]Attribute `json:"attributes"`
+	Blocks              map[string]Block     `json:"blocks"`
 }
 
 // AllAttributes returns the attributes for the dynamic schema, plus the
@@ -38,7 +40,10 @@ func (schema Schema) AllAttributes() map[string]Attribute {
 // type called `id` that is required by every resource and data source in this
 // provider.
 func (schema Schema) ToTerraformResourceSchema() (tfsdk.Schema, error) {
-	out := tfsdk.Schema{}
+	out := tfsdk.Schema{
+		Description:         schema.Description,
+		MarkdownDescription: schema.MarkdownDescription,
+	}
 
 	var err error
 	if out.Attributes, err = schema.getTerraformAttributes(); err != nil {
@@ -68,7 +73,10 @@ func (schema Schema) ToTerraformResourceSchema() (tfsdk.Schema, error) {
 // attribute called `id` that is required by every resource and data source in
 // this provider.
 func (schema Schema) ToTerraformDataSourceSchema() (tfsdk.Schema, error) {
-	out := tfsdk.Schema{}
+	out := tfsdk.Schema{
+		Description:         schema.Description,
+		MarkdownDescription: schema.MarkdownDescription,
+	}
 
 	var err error
 	if out.Attributes, err = schema.getTerraformAttributes(); err != nil {

@@ -1,64 +1,145 @@
-# Terraform Provider Scaffolding (Terraform Plugin Framework)
+# Terraform `mock` Provider
 
-_This template repository is built on the [Terraform Plugin Framework](https://github.com/hashicorp/terraform-plugin-framework). The template repository built on the [Terraform Plugin SDK](https://github.com/hashicorp/terraform-plugin-sdk) can be found at [terraform-provider-scaffolding](https://github.com/hashicorp/terraform-provider-scaffolding). See [Which SDK Should I Use?](https://www.terraform.io/docs/plugin/which-sdk.html) in the Terraform documentation for additional information._
+The `mock` provider is intended to aid with testing the Terraform core libraries
+and the Terraform CLI. This provider should allow users to define all possible 
+Terraform configurations and run them through the Terraform core platform.
 
-This repository is a *template* for a [Terraform](https://www.terraform.io) provider. It is intended as a starting point for creating Terraform providers, containing:
+The provider supplies two static resources:
 
-- A resource and a data source (`internal/provider/`),
-- Examples (`examples/`) and generated documentation (`docs/`),
-- Miscellaneous meta files.
+- `mock_simple_resource`
+- `mock_complex_resource`
+ 
+Users can then define additional dynamic resources by supplying a 
+`dynamic_resources.json` file alongside their root Terraform configuration. 
+These dynamic resources can be used to model any Terraform configuration not
+covered by the provided static resources.
 
-These files contain boilerplate code that you will need to edit to create your own Terraform provider. Tutorials for creating Terraform providers can be found on the [HashiCorp Learn](https://learn.hashicorp.com/collections/terraform/providers) platform. _Terraform Plugin Framework specific guides are titled accordingly._
+By default, all resources created by the provider are then converted into a 
+human-readable JSON format and written out to the resource directory. This 
+behaviour can be disabled by turning on the `use_only_state` flag in the 
+provider schema (this is useful when running the provider in a Terraform Cloud
+environment). The resource directory defaults to `terraform.resource`.
 
-Please see the [GitHub template repository documentation](https://help.github.com/en/github/creating-cloning-and-archiving-repositories/creating-a-repository-from-a-template) for how to create a new repository from this template on GitHub.
+All resources supplied by the provider (including the simple and 
+complex resource as well as any dynamic resources) are duplicated into data 
+sources. The data sources should be supplied in the JSON format that resources
+are written into. The provider looks into the data directory, which defaults to
+`terraform.data`.
 
-Once you've written your provider, you'll want to [publish it on the Terraform Registry](https://www.terraform.io/docs/registry/providers/publishing.html) so that others can use it.
+Finally, all resources (and data sources) supplied by the provider have an `id` 
+attribute that is generated if not set by the configuration. Dynamic resources 
+cannot define an `id` attribute as the provider will create one for them. The 
+`id` attribute is used as name of the human-readable JSON files held in the
+resource and data directories.
 
 ## Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) >= 1.0
 - [Go](https://golang.org/doc/install) >= 1.18
 
-## Building The Provider
-
-1. Clone the repository
-1. Enter the repository directory
-1. Build the provider using the Go `install` command:
-
-```shell
-go install
-```
-
-## Adding Dependencies
-
-This provider uses [Go modules](https://github.com/golang/go/wiki/Modules).
-Please see the Go documentation for the most up to date information about using Go modules.
-
-To add a new dependency `github.com/author/dependency` to your Terraform provider:
-
-```shell
-go get github.com/author/dependency
-go mod tidy
-```
-
-Then commit the changes to `go.mod` and `go.sum`.
-
 ## Using the provider
 
-Fill this in for each provider
+We provide a simple example here. View the [examples](./examples) and 
+[docs](./docs) subdirectories for more examples.
+
+In this example, we have a `mock_simple_resource` defined as a data source with
+an identifier of `my_simple_resource`. This means we create a file 
+`terraform.data/my_simple_resource.json` which defines a simple resource with
+a single integer set. We then define a dynamic resource called 
+`mock_dynamic_resource`. The dynamic resource holds a single integer, and is 
+defined in the `dynamic_resources.json` file. Note, that we do not define an 
+`id` field for this resource when we provide the definition. Despite this, we
+can still provide a value for the `id` in the configuration because the provider
+ensures that all resources have this attribute. In this example, we do provide
+a value for the `id` field. If we didn't the provider would generate one for us.
+
+The following subsections show the Terraform configuration pre-apply and then
+show the extra files created post-apply.
+
+### Pre-apply
+
+#### **./main.tf**
+```hcl
+terraform {
+  required_providers {
+    mock = {
+      source  = "hashicorp/mock"
+      version = "1.0.0"
+    }
+  }
+}
+
+provider "mock" {
+  
+}
+
+data "mock_simple_resource" "my_simple_resource" {
+  id = "my_simple_resource"
+}
+
+resource "mock_dynamic_resource" "my_dynamic_resource" {
+  id = "my_dynamic_resource"
+  my_value = data.mock_simple_resource.my_simple_resource.integer
+}
+```
+
+#### **./terraform.data/my_data_source.json**
+```json
+{
+  "values": {
+    "integer": {
+      "integer": 0
+    },
+    "id": {
+      "string": "my_simple_resource"
+    }
+  }
+}
+```
+
+#### **./dynamic_resources.json**
+```json
+{
+  "mock_dynamic_resource": {
+    "attributes": {
+      "my_value": {
+        "type": "integer",
+        "required": true
+      }
+    }
+  }
+}
+```
+
+### Post apply
+
+In addition to the normal Terraform state and lock files, you will see the new
+resource we created has been written into the resource directory.
+
+#### **./terraform.resource/my_dynamic_resource.json**
+```json
+{
+  "values": {
+    "id": {
+      "string": "my_dynamic_resource"
+    },
+    "my_value": {
+      "number": "0"
+    }
+  }
+}
+```
+
 
 ## Developing the Provider
 
-If you wish to work on the provider, you'll first need [Go](http://www.golang.org) installed on your machine (see [Requirements](#requirements) above).
+If you wish to work on the provider, you'll first need 
+[Go](http://www.golang.org) installed on your machine 
+(see [Requirements](#requirements) above).
 
-To compile the provider, run `go install`. This will build the provider and put the provider binary in the `$GOPATH/bin` directory.
+To compile the provider, run `go install`. This will build the provider and put 
+the provider binary in the `$GOPATH/bin` directory.
 
 To generate or update documentation, run `go generate`.
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
-
-*Note:* Acceptance tests create real resources, and often cost money to run.
-
-```shell
-make testacc
-```

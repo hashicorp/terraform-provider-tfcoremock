@@ -17,6 +17,9 @@ import (
 // It is designed to be read dynamically from a JSON object, allowing schemas,
 // blocks and attributes to be defined dynamically by the user of the provider.
 type Attribute struct {
+	Description         string `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.
+	MarkdownDescription string `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.
+
 	Type     Type `json:"type"`
 	Optional bool `json:"optional"`
 	Required bool `json:"required"`
@@ -97,6 +100,8 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 
 func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
 	attribute := tfsdk.Attribute{
+		Description:         a.Description,
+		MarkdownDescription: a.MarkdownDescription,
 		Optional: a.Optional,
 		Required: a.Required,
 		Computed: a.Computed,

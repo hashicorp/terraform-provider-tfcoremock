@@ -233,6 +233,25 @@ func TestAccDynamicResourceWithId(t *testing.T) {
 	})
 }
 
+func TestAccDynamicResourceWithDataSource(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic_datasource/dynamic_resources.json")),
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/dynamic_datasource/create/main.tf"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.mock_simple_resource.test", "integer", "0"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "id", "my_dynamic_resource"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "my_value", "0")),
+			},
+			{
+				Config: LoadFile(t, "testdata/dynamic_datasource/delete/main.tf"),
+			},
+		},
+	})
+}
+
 func TestAccSimpleDataSource(t *testing.T) {
 	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
@@ -240,7 +259,9 @@ func TestAccSimpleDataSource(t *testing.T) {
 		Steps: []resource.TestStep{
 			{
 				Config: LoadFile(t, "testdata/simple_datasource/get/main.tf"),
-				Check:  resource.TestCheckResourceAttr("data.mock_simple_resource.test", "integer", "0"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("data.mock_simple_resource.data", "integer", "0"),
+					resource.TestCheckResourceAttr("mock_simple_resource.test", "integer", "0")),
 			},
 		},
 	})
