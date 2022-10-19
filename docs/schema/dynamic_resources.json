@@ -1,0 +1,82 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/hashicorp/terraform-provider-mock/blob/main/docs/schema/dynamic_resources.json",
+  "title": "Dynamic Resources",
+  "description": "The set of dynamic resources supported by the mock provider in the current working directory",
+  "type": "object",
+  "additionalProperties": { "$ref": "#/definitions/schema" },
+  "definitions": {
+    "attribute": {
+      "type": "object",
+      "properties": {
+        "type": { "type": "string" },
+        "optional": { "type": "boolean" },
+        "required": { "type": "boolean" },
+        "computed": { "type": "boolean" },
+        "value": { "$ref":  "#/definitions/value" },
+        "list": { "$ref": "#/definitions/attribute" },
+        "map": { "$ref": "#/definitions/attribute" },
+        "object": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/attribute" }
+        },
+        "set": { "$ref": "#/definitions/attribute" }
+      },
+      "additionalProperties": false
+    },
+    "block": {
+      "type": "object",
+      "properties": {
+        "attributes": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/attribute" }
+        },
+        "blocks": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/block" }
+        },
+        "mode": { "type": "string" }
+      },
+      "additionalProperties": false
+    },
+    "schema": {
+      "type": "object",
+      "properties": {
+        "attributes": {
+          "type": "object",
+          "additionalProperties":  { "$ref": "#/definitions/attribute" }
+        },
+        "blocks": {
+          "type": "object",
+          "additionalProperties":  { "$ref": "#/definitions/block" }
+        }
+      },
+      "additionalProperties": false
+    },
+    "value": {
+      "type": "object",
+      "properties": {
+        "boolean": { "type":  "boolean" },
+        "number": { "type": "string" },
+        "string": { "type": "string" },
+        "list": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/value" }
+        },
+        "map": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/value" }
+        },
+        "object": {
+          "type": "object",
+          "additionalProperties": { "$ref": "#/definitions/value" }
+        },
+        "set": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/value" }
+        }
+      },
+      "additionalProperties": false
+    }
+  }
+}
