@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://github.com/hashicorp/terraform-provider-mock/blob/main/docs/schema/dynamic_resources.json",
+  "$id": "https://github.com/hashicorp/terraform-provider-mock/blob/main/schema/dynamic_resources.json",
   "title": "Dynamic Resources",
   "description": "The set of dynamic resources supported by the mock provider in the current working directory",
   "type": "object",
