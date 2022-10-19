@@ -110,12 +110,6 @@ func (m *mockProvider) Configure(ctx context.Context, request provider.Configure
 }
 
 func (m *mockProvider) Resources(ctx context.Context) []func() tfresource.Resource {
-	schemas, err := m.reader.Read()
-	if err != nil {
-		tflog.Error(ctx, err.Error())
-		return nil
-	}
-
 	resources := []func() tfresource.Resource{
 		func() tfresource.Resource {
 			return resource.Resource{
@@ -133,11 +127,19 @@ func (m *mockProvider) Resources(ctx context.Context) []func() tfresource.Resour
 		},
 	}
 
+	schemas, err := m.reader.Read()
+	if err != nil {
+		tflog.Error(ctx, err.Error())
+		return resources
+	}
+
 	for name, schema := range schemas {
+		resourceName := name
+		resourceSchema := schema
 		resources = append(resources, func() tfresource.Resource {
 			return resource.Resource{
-				Name:   name,
-				Schema: schema,
+				Name:   resourceName,
+				Schema: resourceSchema,
 				Client: m.client,
 			}
 		})
@@ -147,12 +149,6 @@ func (m *mockProvider) Resources(ctx context.Context) []func() tfresource.Resour
 }
 
 func (m *mockProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	schemas, err := m.reader.Read()
-	if err != nil {
-		tflog.Error(ctx, err.Error())
-		return nil
-	}
-
 	datasources := []func() datasource.DataSource{
 		func() datasource.DataSource {
 			return resource.DataSource{
@@ -170,11 +166,19 @@ func (m *mockProvider) DataSources(ctx context.Context) []func() datasource.Data
 		},
 	}
 
+	schemas, err := m.reader.Read()
+	if err != nil {
+		tflog.Error(ctx, err.Error())
+		return datasources
+	}
+
 	for name, schema := range schemas {
+		datasourceName := name
+		datasourceSchema := schema
 		datasources = append(datasources, func() datasource.DataSource {
 			return resource.DataSource{
-				Name:   name,
-				Schema: schema,
+				Name:   datasourceName,
+				Schema: datasourceSchema,
 				Client: m.client,
 			}
 		})

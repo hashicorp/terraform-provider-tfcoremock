@@ -1,6 +1,9 @@
 package provider
 
 import (
+	"errors"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 	"os"
 	"testing"
 
@@ -39,5 +42,33 @@ func CleanupTestingDirectories(t *testing.T) func() {
 		if len(files) != 0 {
 			t.Fatalf("failed to tidy up after test")
 		}
+	}
+}
+
+func SaveResourceId(name string, id *string) resource.TestCheckFunc {
+	return func(state *terraform.State) error {
+		module := state.RootModule()
+		rs, ok := module.Resources[name]
+		if !ok {
+			return errors.New("missing resource " + name)
+		}
+
+		*id = rs.Primary.Attributes["id"]
+		return nil
+	}
+}
+
+func CheckResourceIdChanged(name string, id *string) resource.TestCheckFunc {
+	return func(state *terraform.State) error {
+		module := state.RootModule()
+		rs, ok := module.Resources[name]
+		if !ok {
+			return errors.New("missing resource " + name)
+		}
+
+		if *id == rs.Primary.Attributes["id"] {
+			return errors.New("id value for " + name + " has not changed")
+		}
+		return nil
 	}
 }

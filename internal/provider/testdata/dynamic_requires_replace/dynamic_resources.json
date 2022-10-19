@@ -1,0 +1,24 @@
+{
+  "mock_list_of_objects": {
+    "attributes": {
+      "list": {
+        "required": true,
+        "type": "list",
+        "list": {
+          "type": "object",
+          "object": {
+            "key": {
+              "required": true,
+              "type": "string",
+              "replace": true
+            },
+            "value": {
+              "required": true,
+              "type": "string"
+            }
+          }
+        }
+      }
+    }
+  }
+}

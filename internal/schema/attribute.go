@@ -31,6 +31,8 @@ type Attribute struct {
 	Map    *Attribute           `json:"map,omitempty"`
 	Object map[string]Attribute `json:"object,omitempty"`
 	Set    *Attribute           `json:"set,omitempty"`
+
+	Replace bool `json:"replace"` // True if the resource should be replaced when this attribute changes.
 }
 
 // ToTerraformAttribute converts our representation of an Attribute into a
@@ -102,13 +104,17 @@ func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
 	attribute := tfsdk.Attribute{
 		Description:         a.Description,
 		MarkdownDescription: a.MarkdownDescription,
-		Optional: a.Optional,
-		Required: a.Required,
-		Computed: a.Computed,
+		Optional:            a.Optional,
+		Required:            a.Required,
+		Computed:            a.Computed,
 	}
 
 	if a.Computed {
 		attribute.PlanModifiers = append(attribute.PlanModifiers, resource.UseStateForUnknown())
+	}
+
+	if a.Replace {
+		attribute.PlanModifiers = append(attribute.PlanModifiers, resource.RequiresReplace())
 	}
 
 	return attribute

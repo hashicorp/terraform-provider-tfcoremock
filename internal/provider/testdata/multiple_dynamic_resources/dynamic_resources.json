@@ -1,0 +1,18 @@
+{
+  "mock_integer": {
+    "attributes": {
+      "integer": {
+        "type": "integer",
+        "required": true
+      }
+    }
+  },
+  "mock_string": {
+    "attributes": {
+      "string": {
+        "type": "string",
+        "required": true
+      }
+    }
+  }
+}
