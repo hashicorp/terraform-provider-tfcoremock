@@ -18,6 +18,19 @@
           }
         }
       },
+      "metadata_free_list": {
+        "type": "list",
+        "optional": true,
+        "skip_nested_metadata": true,
+        "list": {
+          "type": "object",
+          "object": {
+            "string": {
+              "type": "string"
+            }
+          }
+        }
+      },
       "object": {
         "type": "object",
         "optional": true,

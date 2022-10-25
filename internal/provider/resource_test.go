@@ -104,6 +104,8 @@ func TestAccDynamicResourceNested(t *testing.T) {
 					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "string", "hello"),
 					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "list.#", "1"),
 					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "list.0.string", "one"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "metadata_free_list.#", "1"),
+					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "metadata_free_list.0.string", "other"),
 					resource.TestCheckResourceAttr("mock_dynamic_resource.test", "object.bool", "true")),
 			},
 			{

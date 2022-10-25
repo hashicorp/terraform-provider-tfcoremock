@@ -31,6 +31,11 @@ type Attribute struct {
 	Map    *Attribute           `json:"map,omitempty"`
 	Object map[string]Attribute `json:"object,omitempty"`
 	Set    *Attribute           `json:"set,omitempty"`
+
+	// SkipNestedMetadata instructs the dynamic resource to not use the nested
+	// attribute field when building element and attribute types of complex
+	// attributes (list, map, object, and set).
+	SkipNestedMetadata bool `json:"skip_nested_metadata"`
 }
 
 // ToTerraformAttribute converts our representation of an Attribute into a
@@ -49,7 +54,7 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 	case String:
 		return withType(a.getTerraformAttribute(), types.StringType), nil
 	case List:
-		if a.List.Type == Object {
+		if !a.SkipNestedMetadata && a.List.Type == Object {
 			attributes, err := attributesToTerraformAttributes(a.List.Object)
 			if err != nil {
 				return tfsdk.Attribute{}, nil
@@ -60,9 +65,12 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 		if err != nil {
 			return tfsdk.Attribute{}, nil
 		}
+		if attribute.Type == nil {
+			return withType(a.getTerraformAttribute(), types.ListType{ElemType: attribute.Attributes.Type()}), nil
+		}
 		return withType(a.getTerraformAttribute(), types.ListType{ElemType: attribute.Type}), nil
 	case Map:
-		if a.Map.Type == Object {
+		if !a.SkipNestedMetadata && a.Map.Type == Object {
 			attributes, err := attributesToTerraformAttributes(a.Map.Object)
 			if err != nil {
 				return tfsdk.Attribute{}, nil
@@ -73,9 +81,12 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 		if err != nil {
 			return tfsdk.Attribute{}, nil
 		}
+		if attribute.Type == nil {
+			return withType(a.getTerraformAttribute(), types.MapType{ElemType: attribute.Attributes.Type()}), nil
+		}
 		return withType(a.getTerraformAttribute(), types.MapType{ElemType: attribute.Type}), nil
 	case Set:
-		if a.Set.Type == Object {
+		if !a.SkipNestedMetadata && a.Set.Type == Object {
 			attributes, err := attributesToTerraformAttributes(a.Set.Object)
 			if err != nil {
 				return tfsdk.Attribute{}, nil
@@ -86,8 +97,23 @@ func (a Attribute) ToTerraformAttribute() (tfsdk.Attribute, error) {
 		if err != nil {
 			return tfsdk.Attribute{}, nil
 		}
+		if attribute.Type == nil {
+			return withType(a.getTerraformAttribute(), types.SetType{ElemType: attribute.Attributes.Type()}), nil
+		}
 		return withType(a.getTerraformAttribute(), types.SetType{ElemType: attribute.Type}), nil
 	case Object:
+		if a.SkipNestedMetadata {
+			attributes := make(map[string]attr.Type)
+			for name, attribute := range a.Object {
+				tfAttribute, err := attribute.ToTerraformAttribute()
+				if err != nil {
+					return tfsdk.Attribute{}, err
+				}
+				attributes[name] = tfAttribute.Type
+			}
+			return withType(a.getTerraformAttribute(), types.ObjectType{AttrTypes: attributes}), nil
+		}
+
 		attributes, err := attributesToTerraformAttributes(a.Object)
 		if err != nil {
 			return tfsdk.Attribute{}, err
@@ -102,9 +128,9 @@ func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
 	attribute := tfsdk.Attribute{
 		Description:         a.Description,
 		MarkdownDescription: a.MarkdownDescription,
-		Optional: a.Optional,
-		Required: a.Required,
-		Computed: a.Computed,
+		Optional:            a.Optional,
+		Required:            a.Required,
+		Computed:            a.Computed,
 	}
 
 	if a.Computed {

@@ -9,6 +9,12 @@ resource "mock_dynamic_resource" "test" {
     }
   ]
 
+  metadata_free_list = [
+    {
+      string = "other"
+    }
+  ]
+
   object = {
     bool = true
   }
