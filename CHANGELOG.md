@@ -1,4 +1,4 @@
-## 0.1.0
+## v0.1.0 (18 Nov 2022)
 
 First release of the Mock terraform provider.
 
