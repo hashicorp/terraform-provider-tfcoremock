@@ -1,4 +1,4 @@
-## 0.1.0 (Unreleased)
+## 0.1.0
 
 First release of the Mock terraform provider.
 
