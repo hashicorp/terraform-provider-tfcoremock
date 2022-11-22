@@ -6,8 +6,8 @@ Terraform configurations and run them through the Terraform core platform.
 
 The provider supplies two static resources:
 
-- `tfcoretfcoremock_simple_resource`
-- `tfcoretfcoremock_complex_resource`
+- `tfcoremock_simple_resource`
+- `tfcoremock_complex_resource`
  
 Users can then define additional dynamic resources by supplying a 
 `dynamic_resources.json` file alongside their root Terraform configuration. 
@@ -42,11 +42,11 @@ resource and data directories.
 We provide a simple example here. View the [examples](./examples) and 
 [docs](./docs) subdirectories for more examples.
 
-In this example, we have a `tfcoretfcoremock_simple_resource` defined as a data source with
+In this example, we have a `tfcoremock_simple_resource` defined as a data source with
 an identifier of `my_simple_resource`. This means we create a file 
 `terraform.data/my_simple_resource.json` which defines a simple resource with
 a single integer set. We then define a dynamic resource called 
-`tfcoretfcoremock_dynamic_resource`. The dynamic resource holds a single integer, and is 
+`tfcoremock_dynamic_resource`. The dynamic resource holds a single integer, and is 
 defined in the `dynamic_resources.json` file. Note, that we do not define an 
 `id` field for this resource when we provide the definition. Despite this, we
 can still provide a value for the `id` in the configuration because the provider
@@ -73,13 +73,13 @@ provider "tfcoremock" {
   
 }
 
-data "tfcoretfcoremock_simple_resource" "my_simple_resource" {
+data "tfcoremock_simple_resource" "my_simple_resource" {
   id = "my_simple_resource"
 }
 
-resource "tfcoretfcoremock_dynamic_resource" "my_dynamic_resource" {
+resource "tfcoremock_dynamic_resource" "my_dynamic_resource" {
   id = "my_dynamic_resource"
-  my_value = data.tfcoretfcoremock_simple_resource.my_simple_resource.integer
+  my_value = data.tfcoremock_simple_resource.my_simple_resource.integer
 }
 ```
 
@@ -100,7 +100,7 @@ resource "tfcoretfcoremock_dynamic_resource" "my_dynamic_resource" {
 #### **./dynamic_resources.json**
 ```json
 {
-  "tfcoretfcoremock_dynamic_resource": {
+  "tfcoremock_dynamic_resource": {
     "attributes": {
       "my_value": {
         "type": "integer",
