@@ -1,4 +1,4 @@
-## v0.1.0 (18 Nov 2022)
+## v0.1.0 (22 Nov 2022)
 
 First release of the Terraform Core Mock terraform provider.
 
