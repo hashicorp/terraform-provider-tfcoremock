@@ -102,9 +102,9 @@ func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
 	attribute := tfsdk.Attribute{
 		Description:         a.Description,
 		MarkdownDescription: a.MarkdownDescription,
-		Optional: a.Optional,
-		Required: a.Required,
-		Computed: a.Computed,
+		Optional:            a.Optional,
+		Required:            a.Required,
+		Computed:            a.Computed,
 	}
 
 	if a.Computed {
