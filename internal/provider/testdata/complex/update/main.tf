@@ -1,6 +1,6 @@
-provider "mock" {}
+provider "tfcoremock" {}
 
-resource "mock_complex_resource" "test" {
+resource "tfcoremock_complex_resource" "test" {
   string = "hello"
 
   list = [

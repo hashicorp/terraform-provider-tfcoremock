@@ -1,3 +1,3 @@
-data "mock_complex_resource" "example" {
+data "tfcoremock_complex_resource" "example" {
   id = "my-complex-resource"
 }
