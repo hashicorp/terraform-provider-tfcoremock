@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/hashicorp/terraform-provider-mock/internal/data"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 )
 
 // Attribute defines an internal representation of a Terraform attribute in a
@@ -102,9 +102,9 @@ func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
 	attribute := tfsdk.Attribute{
 		Description:         a.Description,
 		MarkdownDescription: a.MarkdownDescription,
-		Optional: a.Optional,
-		Required: a.Required,
-		Computed: a.Computed,
+		Optional:            a.Optional,
+		Required:            a.Required,
+		Computed:            a.Computed,
 	}
 
 	if a.Computed {

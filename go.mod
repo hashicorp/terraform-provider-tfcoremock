@@ -1,4 +1,4 @@
-module github.com/hashicorp/terraform-provider-mock
+module github.com/hashicorp/terraform-provider-tfcoremock
 
 go 1.18
 

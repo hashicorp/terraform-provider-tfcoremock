@@ -12,22 +12,22 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/hashicorp/terraform-provider-mock/internal/client"
-	"github.com/hashicorp/terraform-provider-mock/internal/resource"
-	"github.com/hashicorp/terraform-provider-mock/internal/schema/complex"
-	"github.com/hashicorp/terraform-provider-mock/internal/schema/dynamic"
-	"github.com/hashicorp/terraform-provider-mock/internal/schema/simple"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/client"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/resource"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/complex"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/dynamic"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/simple"
 )
 
-var _ provider.Provider = &mockProvider{}
+var _ provider.Provider = &tfcoremockProvider{}
 
 var (
-	description = `The 'mock' provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
+	description = `The 'tfcoremock' provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
 
 The provider supplies two static resources:
 
-- 'mock_simple_resource'
-- 'mock_complex_resource'
+- 'tfcoremock_simple_resource'
+- 'tfcoremock_complex_resource'
  
 Users can then define additional dynamic resources by supplying a 'dynamic_resources.json' file alongside their root Terraform configuration. These dynamic resources can be used to model any Terraform configuration not covered by the provided static resources.
 
@@ -37,12 +37,12 @@ All resources supplied by the provider (including the simple and complex resourc
 
 Finally, all resources (and data sources) supplied by the provider have an 'id' attribute that is generated if not set by the configuration. Dynamic resources cannot define an 'id' attribute as the provider will create one for them. The 'id' attribute is used as name of the human-readable JSON files held in the resource and data directories.`
 
-	markdownDescription = `The ''mock'' provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
+	markdownDescription = `The ''tfcoremock'' provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
 
 The provider supplies two static resources:
 
-- ''mock_simple_resource''
-- ''mock_complex_resource''
+- ''tfcoremock_simple_resource''
+- ''tfcoremock_complex_resource''
  
 Users can then define additional dynamic resources by supplying a ''dynamic_resources.json'' file alongside their root Terraform configuration. These dynamic resources can be used to model any Terraform configuration not covered by the provided static resources.
 
@@ -53,7 +53,7 @@ All resources supplied by the provider (including the simple and complex resourc
 Finally, all resources (and data sources) supplied by the provider have an ''id'' attribute that is generated if not set by the configuration. Dynamic resources cannot define an ''id'' attribute as the provider will create one for them. The ''id'' attribute is used as name of the human-readable JSON files held in the resource and data directories.`
 )
 
-type mockProvider struct {
+type tfcoremockProvider struct {
 	// version is set to the provider version on release, "dev" when the
 	// provider is built and ran locally, and "test" when running acceptance
 	// testing.
@@ -74,7 +74,7 @@ type providerData struct {
 	UseOnlyState      types.Bool   `tfsdk:"use_only_state"`
 }
 
-func (m *mockProvider) Configure(ctx context.Context, request provider.ConfigureRequest, response *provider.ConfigureResponse) {
+func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.ConfigureRequest, response *provider.ConfigureResponse) {
 	var data providerData
 	response.Diagnostics.Append(request.Config.Get(ctx, &data)...)
 	if response.Diagnostics.HasError() {
@@ -109,7 +109,7 @@ func (m *mockProvider) Configure(ctx context.Context, request provider.Configure
 	}
 }
 
-func (m *mockProvider) Resources(ctx context.Context) []func() tfresource.Resource {
+func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.Resource {
 	schemas, err := m.reader.Read()
 	if err != nil {
 		tflog.Error(ctx, err.Error())
@@ -119,14 +119,14 @@ func (m *mockProvider) Resources(ctx context.Context) []func() tfresource.Resour
 	resources := []func() tfresource.Resource{
 		func() tfresource.Resource {
 			return resource.Resource{
-				Name:   "mock_complex_resource",
+				Name:   "tfcoremock_complex_resource",
 				Schema: complex.Schema(3),
 				Client: m.client,
 			}
 		},
 		func() tfresource.Resource {
 			return resource.Resource{
-				Name:   "mock_simple_resource",
+				Name:   "tfcoremock_simple_resource",
 				Schema: simple.Schema,
 				Client: m.client,
 			}
@@ -146,7 +146,7 @@ func (m *mockProvider) Resources(ctx context.Context) []func() tfresource.Resour
 	return resources
 }
 
-func (m *mockProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
+func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	schemas, err := m.reader.Read()
 	if err != nil {
 		tflog.Error(ctx, err.Error())
@@ -156,14 +156,14 @@ func (m *mockProvider) DataSources(ctx context.Context) []func() datasource.Data
 	datasources := []func() datasource.DataSource{
 		func() datasource.DataSource {
 			return resource.DataSource{
-				Name:   "mock_complex_resource",
+				Name:   "tfcoremock_complex_resource",
 				Schema: complex.Schema(3),
 				Client: m.client,
 			}
 		},
 		func() datasource.DataSource {
 			return resource.DataSource{
-				Name:   "mock_simple_resource",
+				Name:   "tfcoremock_simple_resource",
 				Schema: simple.Schema,
 				Client: m.client,
 			}
@@ -183,7 +183,7 @@ func (m *mockProvider) DataSources(ctx context.Context) []func() datasource.Data
 	return datasources
 }
 
-func (m *mockProvider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
+func (m *tfcoremockProvider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
 	return tfsdk.Schema{
 		Description:         description,
 		MarkdownDescription: strings.ReplaceAll(markdownDescription, "''", "`"),
@@ -212,7 +212,7 @@ func (m *mockProvider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostic
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
-		return &mockProvider{
+		return &tfcoremockProvider{
 			version: version,
 			// TODO(liamcervante): Turn this into an environment variable?
 			reader: dynamic.FileReader{File: "dynamic_resources.json"},
@@ -222,7 +222,7 @@ func New(version string) func() provider.Provider {
 
 func NewForTesting(version string, resources string) func() provider.Provider {
 	return func() provider.Provider {
-		return &mockProvider{
+		return &tfcoremockProvider{
 			version: version,
 			reader:  dynamic.StringReader{Data: resources},
 		}

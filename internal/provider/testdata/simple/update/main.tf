@@ -1,5 +1,5 @@
-provider "mock" {}
+provider "tfcoremock" {}
 
-resource "mock_simple_resource" "test" {
+resource "tfcoremock_simple_resource" "test" {
   integer = 1
 }

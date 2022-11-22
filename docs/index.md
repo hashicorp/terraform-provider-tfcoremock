@@ -3,9 +3,9 @@
 page_title: "mock Provider"
 subcategory: ""
 description: |-
-  The mock provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
+  The tfcoremock provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
   The provider supplies two static resources:
-  mock_simple_resourcemock_complex_resource
+  tfcoremock_simple_resourcetfcoremock_complex_resource
   Users can then define additional dynamic resources by supplying a dynamic_resources.json file alongside their root Terraform configuration. These dynamic resources can be used to model any Terraform configuration not covered by the provided static resources.
   By default, all resources created by the provider are then converted into a human-readable JSON format and written out to the resource directory. This behaviour can be disabled by turning on the use_only_state flag in the provider schema (this is useful when running the provider in a Terraform Cloud environment). The resource directory defaults to terraform.resource.
   All resources supplied by the provider (including the simple and complex resource as well as any dynamic resources) are duplicated into data sources. The data sources should be supplied in the JSON format that resources are written into. The provider looks into the data directory, which defaults to terraform.data.
@@ -14,12 +14,12 @@ description: |-
 
 # mock Provider
 
-The `mock` provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
+The `tfcoremock` provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
 
 The provider supplies two static resources:
 
-- `mock_simple_resource`
-- `mock_complex_resource`
+- `tfcoremock_simple_resource`
+- `tfcoremock_complex_resource`
  
 Users can then define additional dynamic resources by supplying a `dynamic_resources.json` file alongside their root Terraform configuration. These dynamic resources can be used to model any Terraform configuration not covered by the provided static resources.
 
@@ -32,7 +32,7 @@ Finally, all resources (and data sources) supplied by the provider have an `id` 
 ## Example Usage
 
 ```terraform
-provider "mock" {
+provider "tfcoremock" {
   resource_directory = "terraform.resource"
   data_directory     = "terraform.data"
   use_only_state     = false
