@@ -1,10 +1,6 @@
-## v0.1.1 (unreleased)
-
-- Renamed provider from terraform-provider-mock to terraform-provider-tfcoremock.
-
 ## v0.1.0 (18 Nov 2022)
 
-First release of the Mock terraform provider.
+First release of the Terraform Core Mock terraform provider.
 
 FEATURES:
 
