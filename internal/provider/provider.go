@@ -134,10 +134,12 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 	}
 
 	for name, schema := range schemas {
+		concreteName := name
+		concreteSchema := schema
 		resources = append(resources, func() tfresource.Resource {
 			return resource.Resource{
-				Name:   name,
-				Schema: schema,
+				Name:   concreteName,
+				Schema: concreteSchema,
 				Client: m.client,
 			}
 		})
@@ -171,10 +173,12 @@ func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasourc
 	}
 
 	for name, schema := range schemas {
+		concreteName := name
+		concreteSchema := schema
 		datasources = append(datasources, func() datasource.DataSource {
 			return resource.DataSource{
-				Name:   name,
-				Schema: schema,
+				Name:   concreteName,
+				Schema: concreteSchema,
 				Client: m.client,
 			}
 		})
