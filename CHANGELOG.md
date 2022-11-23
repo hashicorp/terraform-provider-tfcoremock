@@ -1,3 +1,11 @@
+## v0.1.1 (unreleased)
+
+FEATURES:
+
+* `sensitive`: Resource and data source attributes can be marked as sensitive, meaning they will be elided in Terraform plans and logs.
+* `replace`: Resource and data source attributes can be marked as forcing a replacement, meaning that when these attributes are modified the resource will be destroyed and recreated instead of just updated.
+* `skip_nested_metadata`: Resource and data source complex attributes can be created without embedded metadata. This doesn't change anything when editing Terraform config, but it changes the underlying format of the attributes and removes optional, sensitive, replacement metadata from attributes nested within complex attributes marked with this field.
+
 ## v0.1.0 (22 Nov 2022)
 
 First release of the Terraform Core Mock terraform provider.
