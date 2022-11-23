@@ -6,8 +6,8 @@ import (
 
 	"github.com/hashicorp/go-uuid"
 
-	"github.com/hashicorp/terraform-provider-mock/internal/data"
-	"github.com/hashicorp/terraform-provider-mock/internal/schema"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
 )
 
 // GenerateComputedValues steps through the resource and uses the schema to

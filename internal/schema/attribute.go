@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/hashicorp/terraform-provider-mock/internal/data"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 )
 
 // Attribute defines an internal representation of a Terraform attribute in a
@@ -32,7 +32,8 @@ type Attribute struct {
 	Object map[string]Attribute `json:"object,omitempty"`
 	Set    *Attribute           `json:"set,omitempty"`
 
-	Replace bool `json:"replace"` // True if the resource should be replaced when this attribute changes.
+	Sensitive bool `json:"sensitive"` // True if values for this attribute should be hidden in the plan.
+	Replace   bool `json:"replace"`   // True if the resource should be replaced when this attribute changes.
 }
 
 // ToTerraformAttribute converts our representation of an Attribute into a
@@ -107,6 +108,7 @@ func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
 		Optional:            a.Optional,
 		Required:            a.Required,
 		Computed:            a.Computed,
+		Sensitive:           a.Sensitive,
 	}
 
 	if a.Computed {
