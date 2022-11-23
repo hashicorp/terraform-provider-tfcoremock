@@ -2,7 +2,6 @@ package data
 
 import (
 	"errors"
-
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 )
 
@@ -37,7 +36,11 @@ type Resource struct {
 //
 // It assumes the ID value exists and is a string type.
 func (r Resource) GetId() string {
-	return *r.Values["id"].String
+	value := r.Values["id"]
+	if value.String == nil {
+		panic("the developers of this plugin are very interested in seeing which providers are using an ID attribute that isn't a string, please raise this as an issue in the terraform-provider-tfcoremock repository")
+	}
+	return *value.String
 }
 
 // WithType adds type information into a Resource as this is not stored as part

@@ -7,8 +7,9 @@ import (
 )
 
 const (
-	NestingModeList = "list"
-	NestingModeSet  = "set"
+	NestingModeList   = "list"
+	NestingModeSet    = "set"
+	NestingModeSingle = "single"
 )
 
 // Block defines an internal representation of a Terraform block in a schema.
@@ -48,7 +49,15 @@ func (b Block) ToTerraformBlock() (tfsdk.Block, error) {
 	}
 
 	switch b.Mode {
-	case "", NestingModeList:
+	case "", NestingModeSingle:
+		return tfsdk.Block{
+			Description:         b.Description,
+			MarkdownDescription: b.MarkdownDescription,
+			Attributes:          tfAttributes,
+			Blocks:              tfBlocks,
+			NestingMode:         tfsdk.BlockNestingModeSingle,
+		}, nil
+	case NestingModeList:
 		return tfsdk.Block{
 			Description:         b.Description,
 			MarkdownDescription: b.MarkdownDescription,

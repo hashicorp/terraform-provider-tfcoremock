@@ -25,7 +25,7 @@ jobs:
           go-version-file: 'go.mod'
           cache: true
       - run: go mod download
-      - run: go build -v .
+      - run: go build -ldflags "-X google.golang.org/protobuf/reflect/protoregistry.conflictPolicy=warn" -v .
 
   generate:
     runs-on: ubuntu-latest
@@ -53,7 +53,7 @@ jobs:
         with:
           go-version-file: 'go.mod'
           cache: true
-      - run: go test -v -cover ./...
+      - run: GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn go test -v -cover ./...
 
       # Run acceptance tests in a matrix with Terraform CLI versions
   acceptance-test:
@@ -82,5 +82,5 @@ jobs:
       - run: go mod download
       - env:
           TF_ACC: "1"
-        run: go test -v -cover ./internal/provider/
+        run: GOLANG_PROTOBUF_REGISTRATION_CONFLICT=warn go test -v -cover ./internal/provider/
         timeout-minutes: 10

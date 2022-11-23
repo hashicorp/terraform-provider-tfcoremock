@@ -2,6 +2,8 @@ package provider
 
 import (
 	"context"
+	"fmt"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/remote"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -66,6 +68,9 @@ type tfcoremockProvider struct {
 	// client is provided to the actual resources so that their states can be
 	// recorded and written to a backend other than the terraform state.
 	client client.Client
+
+	// dynamic contains the set of dynamic resources for this provider.
+	dynamic *dynamic.Resources
 }
 
 type providerData struct {
@@ -110,12 +115,6 @@ func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.Con
 }
 
 func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.Resource {
-	schemas, err := m.reader.Read()
-	if err != nil {
-		tflog.Error(ctx, err.Error())
-		return nil
-	}
-
 	resources := []func() tfresource.Resource{
 		func() tfresource.Resource {
 			return resource.Resource{
@@ -133,7 +132,13 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 		},
 	}
 
-	for name, schema := range schemas {
+	dynamic, err := m.LoadDynamic()
+	if err != nil {
+		tflog.Error(ctx, err.Error())
+		return resources
+	}
+
+	for name, schema := range dynamic.DynamicResources {
 		concreteName := name
 		concreteSchema := schema
 		resources = append(resources, func() tfresource.Resource {
@@ -145,16 +150,55 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 		})
 	}
 
+	if len(dynamic.RemoteProviders) > 0 {
+		cache, err := remote.Open(".")
+		if err != nil {
+			tflog.Error(ctx, fmt.Sprintf("could not open provider cache: %v", err))
+			return resources
+
+		}
+		for key, provider := range dynamic.RemoteProviders {
+			if err := cache.InstallProvider(key, provider); err != nil {
+				tflog.Error(ctx, fmt.Sprintf("could not install provider %s at location %s: %v", key, provider, err))
+				continue
+			}
+			schemas, _, err := cache.GetSchema(ctx, key)
+			if err != nil {
+				tflog.Error(ctx, fmt.Sprintf("could not get schema for %s: %v", key, err))
+				continue
+			}
+
+			for name, schema := range schemas {
+				concreteName := name
+				concreteSchema := schema
+				resources = append(resources, func() tfresource.Resource {
+					return resource.Resource{
+						Name:   concreteName,
+						Schema: concreteSchema,
+						Client: m.client,
+					}
+				})
+			}
+		}
+	}
+
 	return resources
 }
 
-func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	schemas, err := m.reader.Read()
-	if err != nil {
-		tflog.Error(ctx, err.Error())
-		return nil
+func (m *tfcoremockProvider) LoadDynamic() (*dynamic.Resources, error) {
+	if m.dynamic == nil {
+		dynamic, err := m.reader.Read()
+		if err != nil {
+			return nil, err
+		}
+
+		m.dynamic = dynamic
 	}
 
+	return m.dynamic, nil
+}
+
+func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
 	datasources := []func() datasource.DataSource{
 		func() datasource.DataSource {
 			return resource.DataSource{
@@ -172,7 +216,13 @@ func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasourc
 		},
 	}
 
-	for name, schema := range schemas {
+	dynamic, err := m.LoadDynamic()
+	if err != nil {
+		tflog.Error(ctx, err.Error())
+		return datasources
+	}
+
+	for name, schema := range dynamic.DynamicResources {
 		concreteName := name
 		concreteSchema := schema
 		datasources = append(datasources, func() datasource.DataSource {
@@ -182,6 +232,38 @@ func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasourc
 				Client: m.client,
 			}
 		})
+	}
+
+	if len(dynamic.RemoteProviders) > 0 {
+		cache, err := remote.Open(".")
+		if err != nil {
+			tflog.Error(ctx, fmt.Sprintf("could not open provider cache: %v", err))
+			return datasources
+
+		}
+		for key, provider := range dynamic.RemoteProviders {
+			if err := cache.InstallProvider(key, provider); err != nil {
+				tflog.Error(ctx, fmt.Sprintf("could not install provider %s at location %s: %v", key, provider, err))
+				continue
+			}
+			_, schemas, err := cache.GetSchema(ctx, key)
+			if err != nil {
+				tflog.Error(ctx, fmt.Sprintf("could not get schema for %s: %v", key, err))
+				continue
+			}
+
+			for name, schema := range schemas {
+				concreteName := name
+				concreteSchema := schema
+				datasources = append(datasources, func() datasource.DataSource {
+					return resource.DataSource{
+						Name:   concreteName,
+						Schema: concreteSchema,
+						Client: m.client,
+					}
+				})
+			}
+		}
 	}
 
 	return datasources

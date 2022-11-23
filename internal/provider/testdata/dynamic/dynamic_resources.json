@@ -1,9 +1,11 @@
 {
-  "tfcoremock_dynamic_resource": {
-    "attributes": {
-      "integer": {
-        "type": "integer",
-        "optional": true
+  "dynamic_resources": {
+    "tfcoremock_dynamic_resource": {
+      "attributes": {
+        "integer": {
+          "type": "integer",
+          "optional": true
+        }
       }
     }
   }

@@ -1,0 +1,6 @@
+{
+  "remote_providers": {
+    "null": "https://releases.hashicorp.com/terraform-provider-null/3.2.1/terraform-provider-null_3.2.1_darwin_arm64.zip",
+    "aws": "https://releases.hashicorp.com/terraform-provider-aws/4.40.0/terraform-provider-aws_4.40.0_darwin_arm64.zip"
+  }
+}

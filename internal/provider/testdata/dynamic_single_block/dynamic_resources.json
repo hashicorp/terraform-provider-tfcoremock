@@ -8,8 +8,7 @@
         }
       },
       "blocks": {
-        "nested_list": {
-          "mode": "list",
+        "nested_object": {
           "attributes": {
             "integer": {
               "type": "integer",

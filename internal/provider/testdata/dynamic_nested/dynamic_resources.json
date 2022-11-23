@@ -1,42 +1,44 @@
 {
-  "tfcoremock_dynamic_resource": {
-    "attributes": {
-      "string": {
-        "type": "string",
-        "optional": true
-      },
-      "list": {
-        "type": "list",
-        "optional": true,
+  "dynamic_resources": {
+    "tfcoremock_dynamic_resource": {
+      "attributes": {
+        "string": {
+          "type": "string",
+          "optional": true
+        },
         "list": {
+          "type": "list",
+          "optional": true,
+          "list": {
+            "type": "object",
+            "object": {
+              "string": {
+                "type": "string",
+                "optional": true
+              }
+            }
+          }
+        },
+        "object": {
           "type": "object",
+          "optional": true,
           "object": {
-            "string": {
-              "type": "string",
+            "bool": {
+              "type": "boolean",
               "optional": true
             }
           }
-        }
-      },
-      "object": {
-        "type": "object",
-        "optional": true,
-        "object": {
-          "bool": {
-            "type": "boolean",
-            "optional": true
-          }
-        }
-      },
-      "set": {
-        "type": "set",
-        "optional": true,
+        },
         "set": {
-          "type": "object",
-          "object": {
-            "string": {
-              "type": "string",
-              "optional": true
+          "type": "set",
+          "optional": true,
+          "set": {
+            "type": "object",
+            "object": {
+              "string": {
+                "type": "string",
+                "optional": true
+              }
             }
           }
         }

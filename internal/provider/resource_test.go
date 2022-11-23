@@ -140,6 +140,30 @@ func TestAccDynamicResourceWithBlocks(t *testing.T) {
 	})
 }
 
+func TestAccDynamicResourceWithSingleBlock(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic_single_block/dynamic_resources.json")),
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/dynamic_single_block/create/main.tf"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "integer", "0"),
+					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "nested_object.integer", "0")),
+			},
+			{
+				Config: LoadFile(t, "testdata/dynamic_single_block/update/main.tf"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "integer", "0"),
+					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "nested_object.integer", "1")),
+			},
+			{
+				Config: LoadFile(t, "testdata/dynamic/delete/main.tf"),
+			},
+		},
+	})
+}
+
 func TestAccDynamicResourceWithComputed(t *testing.T) {
 	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
@@ -330,6 +354,22 @@ func TestAccSimpleResourceWithId(t *testing.T) {
 			},
 			{
 				Config: LoadFile(t, "testdata/simple/delete/main.tf"),
+			},
+		},
+	})
+}
+
+func TestAccRemoteResource(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/remote/dynamic_resources.json")),
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/remote/create/main.tf"),
+				Check:  resource.TestCheckResourceAttrSet("null_resource.test", "id"),
+			},
+			{
+				Config: LoadFile(t, "testdata/remote/delete/main.tf"),
 			},
 		},
 	})

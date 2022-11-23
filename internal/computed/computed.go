@@ -35,9 +35,12 @@ func generateComputedValuesForBlocks(values *map[string]data.Value, blocks map[s
 	for key, block := range blocks {
 		var err error
 		switch block.Mode {
+		case "", schema.NestingModeSingle:
+			next := []data.Value{(*values)[key]}
+			err = generateComputedValuesForBlock(&next, block)
 		case schema.NestingModeSet:
 			err = generateComputedValuesForBlock((*values)[key].Set, block)
-		case "", schema.NestingModeList:
+		case schema.NestingModeList:
 			err = generateComputedValuesForBlock((*values)[key].List, block)
 		default:
 			return errors.New("unrecognized block type: " + block.Mode)

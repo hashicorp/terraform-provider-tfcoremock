@@ -3,12 +3,10 @@ package dynamic
 import (
 	"encoding/json"
 	"os"
-
-	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
 )
 
 type Reader interface {
-	Read() (map[string]schema.Schema, error)
+	Read() (*Resources, error)
 }
 
 type FileReader struct {
@@ -19,7 +17,7 @@ type StringReader struct {
 	Data string
 }
 
-func (r FileReader) Read() (map[string]schema.Schema, error) {
+func (r FileReader) Read() (*Resources, error) {
 	data, err := os.ReadFile(r.File)
 	if err != nil {
 		if os.IsNotExist(err) {
@@ -28,22 +26,22 @@ func (r FileReader) Read() (map[string]schema.Schema, error) {
 		return nil, err
 	}
 
-	var dynamicResources map[string]schema.Schema
+	var resources Resources
 	if len(data) > 0 {
-		if err := json.Unmarshal(data, &dynamicResources); err != nil {
+		if err := json.Unmarshal(data, &resources); err != nil {
 			return nil, err
 		}
 	}
 
-	return dynamicResources, nil
+	return &resources, nil
 }
 
-func (r StringReader) Read() (map[string]schema.Schema, error) {
-	var dynamicResources map[string]schema.Schema
+func (r StringReader) Read() (*Resources, error) {
+	var resources Resources
 	if len(r.Data) > 0 {
-		if err := json.Unmarshal([]byte(r.Data), &dynamicResources); err != nil {
+		if err := json.Unmarshal([]byte(r.Data), &resources); err != nil {
 			return nil, err
 		}
 	}
-	return dynamicResources, nil
+	return &resources, nil
 }

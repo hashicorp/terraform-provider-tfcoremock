@@ -1,4 +1,4 @@
-package main
+package remote
 
 import (
 	"archive/zip"
@@ -6,9 +6,9 @@ import (
 	"errors"
 	"fmt"
 	"github.com/hashicorp/go-plugin"
-	"github.com/hashicorp/terraform-provider-mock/internal/schema"
-	proto5 "github.com/hashicorp/terraform-provider-mock/internal/schema/remote/plugin/tfplugin5"
-	proto6 "github.com/hashicorp/terraform-provider-mock/internal/schema/remote/plugin/tfplugin6"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
+	proto5 "github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/remote/plugin/tfplugin5"
+	proto6 "github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/remote/plugin/tfplugin6"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -29,13 +29,22 @@ const PluginDir = ".terraform.plugin"
 type Cache struct {
 	Directory string
 
-	Providers map[string]string
+	Metadata Metadata
+
+	Resources   map[string]map[string]schema.Schema
+	DataSources map[string]map[string]schema.Schema
 }
 
 func Open(currentDirectory string) (Cache, error) {
 	cache := Cache{
-		Directory: path.Join(currentDirectory, PluginDir),
-		Providers: make(map[string]string),
+		Directory:   path.Join(currentDirectory, PluginDir),
+		Resources:   make(map[string]map[string]schema.Schema),
+		DataSources: make(map[string]map[string]schema.Schema),
+	}
+
+	var err error
+	if cache.Metadata, err = LoadMetadata(cache.Directory); err != nil {
+		return cache, err
 	}
 
 	targetDirectory := path.Join(currentDirectory, PluginDir)
@@ -43,16 +52,16 @@ func Open(currentDirectory string) (Cache, error) {
 		return cache, err
 	}
 
-	if err := cache.getProviders(); err != nil {
-		return cache, err
-	}
-
 	return cache, nil
 }
 
 func (cache *Cache) GetSchema(ctx context.Context, key string) (map[string]schema.Schema, map[string]schema.Schema, error) {
-	if _, ok := cache.Providers[key]; !ok {
+	if _, ok := cache.Metadata.Providers[key]; !ok {
 		return nil, nil, errors.New("missing provider: " + key)
+	}
+
+	if _, ok := cache.Resources[key]; ok {
+		return cache.Resources[key], cache.DataSources[key], nil
 	}
 
 	config := &plugin.ClientConfig{
@@ -63,7 +72,7 @@ func (cache *Cache) GetSchema(ctx context.Context, key string) (map[string]schem
 		},
 		AllowedProtocols: []plugin.Protocol{plugin.ProtocolGRPC},
 		Managed:          true,
-		Cmd:              exec.Command(cache.Providers[key]),
+		Cmd:              exec.Command(cache.Metadata.GetLocal(key)),
 		AutoMTLS:         true,
 		VersionedPlugins: map[int]plugin.PluginSet{
 			5: {
@@ -89,20 +98,31 @@ func (cache *Cache) GetSchema(ctx context.Context, key string) (map[string]schem
 		return nil, nil, err
 	}
 
+	var datasources map[string]schema.Schema
+	var resources map[string]schema.Schema
+
 	switch ver := client.NegotiatedVersion(); ver {
 	case 5:
 		p := raw.(*proto5.Provider)
-		return p.GetSchema(ctx)
+		resources, datasources, err = p.GetSchema(ctx)
 	case 6:
 		p := raw.(*proto6.Provider)
-		return p.GetSchema(ctx)
+		resources, datasources, err = p.GetSchema(ctx)
 	default:
 		return nil, nil, errors.New(fmt.Sprintf("unrecognized version: %d", ver))
 	}
+
+	if err != nil {
+		return nil, nil, err
+	}
+
+	cache.Resources[key] = resources
+	cache.DataSources[key] = datasources
+	return resources, datasources, nil
 }
 
 func (cache *Cache) InstallProvider(key, target string) error {
-	if _, ok := cache.Providers[key]; ok {
+	if current, ok := cache.Metadata.Providers[key]; ok && target == current.Remote {
 		return nil
 	}
 
@@ -147,7 +167,11 @@ func (cache *Cache) InstallProvider(key, target string) error {
 		if err := os.Chmod(dst, os.ModePerm); err != nil {
 			return err
 		}
-		cache.Providers[key] = dst
+		cache.Metadata.Set(key, target, dst)
+	}
+
+	if err := cache.Metadata.Save(cache.Directory); err != nil {
+		return err
 	}
 
 	return nil
@@ -168,21 +192,4 @@ func copyFromArchive(src *zip.File, dst string) error {
 
 	_, err = io.Copy(dstF, srcF)
 	return err
-}
-
-func (cache *Cache) getProviders() error {
-	files, err := ioutil.ReadDir(cache.Directory)
-	if err != nil {
-		return err
-	}
-
-	for _, f := range files {
-		if f.IsDir() {
-			continue
-		}
-
-		cache.Providers[f.Name()] = path.Join(cache.Directory, f.Name())
-	}
-
-	return nil
 }

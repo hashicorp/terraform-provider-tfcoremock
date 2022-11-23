@@ -1,28 +1,33 @@
 {
-  "tfcoremock_dynamic_resource": {
-    "blocks": {
-      "object": {
-        "attributes": {
-          "id": {
-            "type": "string",
-            "computed": true
-          }
-        }
-      },
-      "other": {
-        "attributes": {
-          "id": {
-            "type": "string",
-            "computed": true,
-            "optional": true
+  "dynamic_resources": {
+    "tfcoremock_dynamic_resource": {
+      "blocks": {
+        "object": {
+          "mode": "list",
+          "attributes": {
+            "id": {
+              "type": "string",
+              "computed": true
+            }
           }
         },
-        "blocks": {
-          "nested": {
-            "attributes": {
-              "id": {
-                "type": "string",
-                "computed": true
+        "other": {
+          "mode": "list",
+          "attributes": {
+            "id": {
+              "type": "string",
+              "computed": true,
+              "optional": true
+            }
+          },
+          "blocks": {
+            "nested": {
+              "mode": "list",
+              "attributes": {
+                "id": {
+                  "type": "string",
+                  "computed": true
+                }
               }
             }
           }
