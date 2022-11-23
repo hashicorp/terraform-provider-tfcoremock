@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"os"
 
-	"github.com/hashicorp/terraform-provider-mock/internal/schema"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
 )
 
 type Reader interface {

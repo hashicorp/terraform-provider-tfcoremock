@@ -1,1 +1,1 @@
-provider "mock" {}
+provider "tfcoremock" {}

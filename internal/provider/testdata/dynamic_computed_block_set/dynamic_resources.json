@@ -1,5 +1,5 @@
 {
-  "mock_dynamic_resource": {
+  "tfcoremock_dynamic_resource": {
     "blocks": {
       "other": {
         "mode": "set",

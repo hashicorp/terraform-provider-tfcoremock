@@ -1,4 +1,4 @@
-# Contributing to `terraform-provider-mock`
+# Contributing to `terraform-provider-tfcoremock`
 
 **First:** if you're unsure or afraid of _anything_, just ask or submit the issue describing the problem you're aiming to solve.
 

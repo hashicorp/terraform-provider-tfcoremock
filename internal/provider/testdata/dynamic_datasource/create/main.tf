@@ -1,10 +1,10 @@
-provider "mock" {}
+provider "tfcoremock" {}
 
-data "mock_simple_resource" "test" {
+data "tfcoremock_simple_resource" "test" {
   id = "simple_resource"
 }
 
-resource "mock_dynamic_resource" "test" {
+resource "tfcoremock_dynamic_resource" "test" {
   id = "my_dynamic_resource"
-  my_value = data.mock_simple_resource.test.integer
+  my_value = data.tfcoremock_simple_resource.test.integer
 }

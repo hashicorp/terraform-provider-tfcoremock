@@ -1,6 +1,6 @@
-provider "mock" {}
+provider "tfcoremock" {}
 
-resource "mock_dynamic_resource" "test" {
+resource "tfcoremock_dynamic_resource" "test" {
   id = "my_id"
   integer = 1
 }

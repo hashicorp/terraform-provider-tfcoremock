@@ -1,5 +1,5 @@
-provider "mock" {}
+provider "tfcoremock" {}
 
-data "mock_simple_resource" "simple_resource" {
+data "tfcoremock_simple_resource" "simple_resource" {
   id = "simple_resource"
 }
