@@ -1,9 +1,9 @@
-provider mock {}
+provider "tfcoremock" {}
 
-data "mock_simple_resource" "data" {
+data "tfcoremock_simple_resource" "data" {
   id = "simple_resource"
 }
 
-resource "mock_simple_resource" "test" {
-  integer = data.mock_simple_resource.data.integer
+resource "tfcoremock_simple_resource" "test" {
+  integer = data.tfcoremock_simple_resource.data.integer
 }

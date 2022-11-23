@@ -10,7 +10,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
-	"github.com/hashicorp/terraform-provider-mock/internal/data"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 )
 
 var _ Client = Local{}

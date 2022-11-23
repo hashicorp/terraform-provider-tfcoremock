@@ -1,6 +1,6 @@
 package simple
 
-import "github.com/hashicorp/terraform-provider-mock/internal/schema"
+import "github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
 
 var (
 	description         = "A simple resource that holds optional attributes for the five basic types: bool, number, string, float and integer."

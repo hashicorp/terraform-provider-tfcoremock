@@ -9,9 +9,9 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
-	"github.com/hashicorp/terraform-provider-mock/internal/client"
-	"github.com/hashicorp/terraform-provider-mock/internal/data"
-	"github.com/hashicorp/terraform-provider-mock/internal/schema"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/client"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
 )
 
 var _ datasource.DataSource = DataSource{}
