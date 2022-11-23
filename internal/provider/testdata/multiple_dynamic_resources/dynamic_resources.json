@@ -1,5 +1,5 @@
 {
-  "mock_integer": {
+  "tfcoremock_integer": {
     "attributes": {
       "integer": {
         "type": "integer",
@@ -7,7 +7,7 @@
       }
     }
   },
-  "mock_string": {
+  "tfcoremock_string": {
     "attributes": {
       "string": {
         "type": "string",

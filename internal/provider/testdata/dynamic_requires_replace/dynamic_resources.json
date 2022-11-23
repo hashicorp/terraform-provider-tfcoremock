@@ -1,5 +1,5 @@
 {
-  "mock_list_of_objects": {
+  "tfcoremock_list_of_objects": {
     "attributes": {
       "list": {
         "required": true,

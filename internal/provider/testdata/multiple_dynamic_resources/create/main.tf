@@ -1,9 +1,9 @@
-provider "mock" {}
+provider "tfcoremock" {}
 
-resource "mock_integer" "integer" {
+resource "tfcoremock_integer" "integer" {
   integer = 404
 }
 
-resource "mock_string" "string" {
+resource "tfcoremock_string" "string" {
   string = "Hello, world!"
 }

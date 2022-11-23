@@ -1,6 +1,6 @@
-provider "mock" {}
+provider "tfcoremock" {}
 
-resource "mock_list_of_objects" "test" {
+resource "tfcoremock_list_of_objects" "test" {
   list = [
     {
       key   = "three"

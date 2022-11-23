@@ -244,20 +244,20 @@ func TestAccDynamicResourceWithRequiresReplace(t *testing.T) {
 			{
 				Config: LoadFile(t, "testdata/dynamic_requires_replace/create/main.tf"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("mock_list_of_objects.test", "list.0.key", "one"),
-					resource.TestCheckResourceAttr("mock_list_of_objects.test", "list.0.value", "first value"),
-					resource.TestCheckResourceAttr("mock_list_of_objects.test", "list.1.key", "two"),
-					resource.TestCheckResourceAttr("mock_list_of_objects.test", "list.1.value", "second value"),
-					SaveResourceId("mock_list_of_objects.test", &originalId)),
+					resource.TestCheckResourceAttr("tfcoremock_list_of_objects.test", "list.0.key", "one"),
+					resource.TestCheckResourceAttr("tfcoremock_list_of_objects.test", "list.0.value", "first value"),
+					resource.TestCheckResourceAttr("tfcoremock_list_of_objects.test", "list.1.key", "two"),
+					resource.TestCheckResourceAttr("tfcoremock_list_of_objects.test", "list.1.value", "second value"),
+					SaveResourceId("tfcoremock_list_of_objects.test", &originalId)),
 			},
 			{
 				Config: LoadFile(t, "testdata/dynamic_requires_replace/update/main.tf"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("mock_list_of_objects.test", "list.0.key", "three"),
-					resource.TestCheckResourceAttr("mock_list_of_objects.test", "list.0.value", "first value"),
-					resource.TestCheckResourceAttr("mock_list_of_objects.test", "list.1.key", "two"),
-					resource.TestCheckResourceAttr("mock_list_of_objects.test", "list.1.value", "second value"),
-					CheckResourceIdChanged("mock_list_of_objects.test", &originalId)),
+					resource.TestCheckResourceAttr("tfcoremock_list_of_objects.test", "list.0.key", "three"),
+					resource.TestCheckResourceAttr("tfcoremock_list_of_objects.test", "list.0.value", "first value"),
+					resource.TestCheckResourceAttr("tfcoremock_list_of_objects.test", "list.1.key", "two"),
+					resource.TestCheckResourceAttr("tfcoremock_list_of_objects.test", "list.1.value", "second value"),
+					CheckResourceIdChanged("tfcoremock_list_of_objects.test", &originalId)),
 			},
 			{
 				Config: LoadFile(t, "testdata/dynamic/delete/main.tf"),
@@ -274,8 +274,8 @@ func TestAccMultipleDynamicResources(t *testing.T) {
 			{
 				Config: LoadFile(t, "testdata/multiple_dynamic_resources/create/main.tf"),
 				Check: resource.ComposeAggregateTestCheckFunc(
-					resource.TestCheckResourceAttr("mock_integer.integer", "integer", "404"),
-					resource.TestCheckResourceAttr("mock_string.string", "string", "Hello, world!")),
+					resource.TestCheckResourceAttr("tfcoremock_integer.integer", "integer", "404"),
+					resource.TestCheckResourceAttr("tfcoremock_string.string", "string", "Hello, world!")),
 			},
 			{
 				Config: LoadFile(t, "testdata/multiple_dynamic_resources/delete/main.tf"),
