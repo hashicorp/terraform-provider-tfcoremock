@@ -1,1 +1,1 @@
-resource "mock_dynamic_resource" "example" {}
+resource "tfcoremock_dynamic_resource" "example" {}

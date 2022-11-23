@@ -1,4 +1,4 @@
-resource "mock_complex_resource" "example" {
+resource "tfcoremock_complex_resource" "example" {
   id = "my-complex-resource"
 
   bool    = true

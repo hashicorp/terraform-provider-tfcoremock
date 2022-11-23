@@ -1,4 +1,4 @@
-resource "mock_simple_resource" "example" {
+resource "tfcoremock_simple_resource" "example" {
   id      = "my-simple-resource"
   bool    = true
   number  = 0

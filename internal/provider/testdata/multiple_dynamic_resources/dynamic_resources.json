@@ -1,0 +1,18 @@
+{
+  "tfcoremock_integer": {
+    "attributes": {
+      "integer": {
+        "type": "integer",
+        "required": true
+      }
+    }
+  },
+  "tfcoremock_string": {
+    "attributes": {
+      "string": {
+        "type": "string",
+        "required": true
+      }
+    }
+  }
+}

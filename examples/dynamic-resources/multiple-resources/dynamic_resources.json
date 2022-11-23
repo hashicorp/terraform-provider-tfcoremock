@@ -1,5 +1,5 @@
 {
-  "mock_string_resource": {
+  "tfcoremock_dynamic_resource_string_resource": {
     "attributes": {
       "my_value": {
         "type": "string",
@@ -7,7 +7,7 @@
       }
     }
   },
-  "mock_integer_resource": {
+  "tfcoremock_dynamic_resource_integer_resource": {
     "attributes": {
       "my_value": {
         "type": "integer",

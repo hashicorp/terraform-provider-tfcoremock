@@ -2,14 +2,15 @@ package complex
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-mock/internal/schema"
 	"strings"
+
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
 )
 
 var (
 	description = `A complex resource that contains five basic attributes, four complex attributes, and two nested blocks.
 
-The five basic attributes are boolean, number, string, float, and integer (as with the mock_simple_resource).
+The five basic attributes are boolean, number, string, float, and integer (as with the tfcoremock_simple_resource).
 
 The complex attributes are a map, a list, a set, and an object. The object type contains the same set of attributes as the schema itself, making a recursive structure. The list, set and map all contain objects which are also recursive. Blocks cannot go into attributes, so the complex attributes do not recurse on the block types.
 
@@ -18,7 +19,7 @@ The blocks are a nested list and a nested set. The blocks contain the same set o
 The complex and block types are nested %d times, at the leaf level of recursion the complex attributes and blocks only contain the simple (ie. non-recursive) attributes. This prevents a potentially infinite level of recursion.`
 	markdownDescription = `A complex resource that contains five basic attributes, four complex attributes, and two nested blocks.
 
-The five basic attributes are ''boolean'', ''number'', ''string'', ''float'', and ''integer'' (as with the ''mock_simple_resource'').
+The five basic attributes are ''boolean'', ''number'', ''string'', ''float'', and ''integer'' (as with the ''tfcoremock_simple_resource'').
 
 The complex attributes are a ''map'', a ''list'', a ''set'', and an ''object''. The ''object'' type contains the same set of attributes as the schema itself, making a recursive structure. The ''list'', ''set'' and ''map'' all contain objects which are also recursive. Blocks cannot go into attributes, so the complex attributes do not recurse on the block types.
 

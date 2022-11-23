@@ -8,7 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
-	"github.com/hashicorp/terraform-provider-mock/internal/data"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 )
 
 // Attribute defines an internal representation of a Terraform attribute in a
@@ -31,6 +31,9 @@ type Attribute struct {
 	Map    *Attribute           `json:"map,omitempty"`
 	Object map[string]Attribute `json:"object,omitempty"`
 	Set    *Attribute           `json:"set,omitempty"`
+
+	Sensitive bool `json:"sensitive"` // True if values for this attribute should be hidden in the plan.
+	Replace   bool `json:"replace"`   // True if the resource should be replaced when this attribute changes.
 
 	// SkipNestedMetadata instructs the dynamic resource to not use the nested
 	// attribute field when building element and attribute types of complex
@@ -131,10 +134,15 @@ func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
 		Optional:            a.Optional,
 		Required:            a.Required,
 		Computed:            a.Computed,
+		Sensitive:           a.Sensitive,
 	}
 
 	if a.Computed {
 		attribute.PlanModifiers = append(attribute.PlanModifiers, resource.UseStateForUnknown())
+	}
+
+	if a.Replace {
+		attribute.PlanModifiers = append(attribute.PlanModifiers, resource.RequiresReplace())
 	}
 
 	return attribute

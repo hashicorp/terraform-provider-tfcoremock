@@ -3,7 +3,7 @@ package client
 import (
 	"context"
 
-	"github.com/hashicorp/terraform-provider-mock/internal/data"
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 )
 
 type Client interface {
