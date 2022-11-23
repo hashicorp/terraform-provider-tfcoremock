@@ -31,6 +31,8 @@ type Attribute struct {
 	Map    *Attribute           `json:"map,omitempty"`
 	Object map[string]Attribute `json:"object,omitempty"`
 	Set    *Attribute           `json:"set,omitempty"`
+
+	Sensitive bool `json:"sensitive"` // True if values for this attribute should be hidden in the plan.
 }
 
 // ToTerraformAttribute converts our representation of an Attribute into a
@@ -105,6 +107,7 @@ func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
 		Optional:            a.Optional,
 		Required:            a.Required,
 		Computed:            a.Computed,
+		Sensitive:           a.Sensitive,
 	}
 
 	if a.Computed {
