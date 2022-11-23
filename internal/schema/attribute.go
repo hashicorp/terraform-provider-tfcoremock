@@ -33,6 +33,7 @@ type Attribute struct {
 	Set    *Attribute           `json:"set,omitempty"`
 
 	Sensitive bool `json:"sensitive"` // True if values for this attribute should be hidden in the plan.
+	Replace   bool `json:"replace"`   // True if the resource should be replaced when this attribute changes.
 }
 
 // ToTerraformAttribute converts our representation of an Attribute into a
@@ -112,6 +113,10 @@ func (a Attribute) getTerraformAttribute() tfsdk.Attribute {
 
 	if a.Computed {
 		attribute.PlanModifiers = append(attribute.PlanModifiers, resource.UseStateForUnknown())
+	}
+
+	if a.Replace {
+		attribute.PlanModifiers = append(attribute.PlanModifiers, resource.RequiresReplace())
 	}
 
 	return attribute

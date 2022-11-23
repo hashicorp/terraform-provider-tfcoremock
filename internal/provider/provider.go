@@ -110,12 +110,6 @@ func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.Con
 }
 
 func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.Resource {
-	schemas, err := m.reader.Read()
-	if err != nil {
-		tflog.Error(ctx, err.Error())
-		return nil
-	}
-
 	resources := []func() tfresource.Resource{
 		func() tfresource.Resource {
 			return resource.Resource{
@@ -133,13 +127,19 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 		},
 	}
 
+	schemas, err := m.reader.Read()
+	if err != nil {
+		tflog.Error(ctx, err.Error())
+		return resources
+	}
+
 	for name, schema := range schemas {
-		concreteName := name
-		concreteSchema := schema
+		resourceName := name
+		resourceSchema := schema
 		resources = append(resources, func() tfresource.Resource {
 			return resource.Resource{
-				Name:   concreteName,
-				Schema: concreteSchema,
+				Name:   resourceName,
+				Schema: resourceSchema,
 				Client: m.client,
 			}
 		})
@@ -149,12 +149,6 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 }
 
 func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasource.DataSource {
-	schemas, err := m.reader.Read()
-	if err != nil {
-		tflog.Error(ctx, err.Error())
-		return nil
-	}
-
 	datasources := []func() datasource.DataSource{
 		func() datasource.DataSource {
 			return resource.DataSource{
@@ -172,13 +166,19 @@ func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasourc
 		},
 	}
 
+	schemas, err := m.reader.Read()
+	if err != nil {
+		tflog.Error(ctx, err.Error())
+		return datasources
+	}
+
 	for name, schema := range schemas {
-		concreteName := name
-		concreteSchema := schema
+		datasourceName := name
+		datasourceSchema := schema
 		datasources = append(datasources, func() datasource.DataSource {
 			return resource.DataSource{
-				Name:   concreteName,
-				Schema: concreteSchema,
+				Name:   datasourceName,
+				Schema: datasourceSchema,
 				Client: m.client,
 			}
 		})

@@ -2,8 +2,9 @@ package complex
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
 	"strings"
+
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
 )
 
 var (
