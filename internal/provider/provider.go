@@ -2,6 +2,7 @@ package provider
 
 import (
 	"context"
+	"os"
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
@@ -21,7 +22,7 @@ import (
 
 var _ provider.Provider = &tfcoremockProvider{}
 
-var (
+const (
 	description = `The 'tfcoremock' provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
 
 The provider supplies two static resources:
@@ -51,6 +52,8 @@ By default, all resources created by the provider are then converted into a huma
 All resources supplied by the provider (including the simple and complex resource as well as any dynamic resources) are duplicated into data sources. The data sources should be supplied in the JSON format that resources are written into. The provider looks into the data directory, which defaults to ''terraform.data''.
 
 Finally, all resources (and data sources) supplied by the provider have an ''id'' attribute that is generated if not set by the configuration. Dynamic resources cannot define an ''id'' attribute as the provider will create one for them. The ''id'' attribute is used as name of the human-readable JSON files held in the resource and data directories.`
+
+	dynamicResourcesPathEnvVarName = "TFCOREMOCK_DYNAMIC_RESOURCES_FILE"
 )
 
 type tfcoremockProvider struct {
@@ -216,10 +219,14 @@ func (m *tfcoremockProvider) GetSchema(context.Context) (tfsdk.Schema, diag.Diag
 
 func New(version string) func() provider.Provider {
 	return func() provider.Provider {
+		dynamicResourcesPath := "dynamic_resources.json"
+		if dynamicResourcesPathEnvVar := os.Getenv(dynamicResourcesPathEnvVarName); len(dynamicResourcesPathEnvVar) > 0 {
+			dynamicResourcesPath = dynamicResourcesPathEnvVar
+		}
+
 		return &tfcoremockProvider{
 			version: version,
-			// TODO(liamcervante): Turn this into an environment variable?
-			reader: dynamic.FileReader{File: "dynamic_resources.json"},
+			reader:  dynamic.FileReader{File: dynamicResourcesPath},
 		}
 	}
 }

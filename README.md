@@ -14,6 +14,13 @@ Users can then define additional dynamic resources by supplying a
 These dynamic resources can be used to model any Terraform configuration not
 covered by the provided static resources.
 
+Use the `TFCOREMOCK_DYNAMIC_RESOURCES_FILE` environment variable to customise 
+the location of the `dynamic_resources.json` file. By default, the provider 
+looks for the `dynamic_resources.json` file in the same directory as the 
+Terraform config files, but using this environment variable allows the dynamic
+resources to be defined by any file on the system. For example: 
+`TFCOREMOCK_DYNAMIC_RESOURCES_FILE=/path/to/resources.json terraform plan`
+
 By default, all resources created by the provider are then converted into a 
 human-readable JSON format and written out to the resource directory. This 
 behaviour can be disabled by turning on the `use_only_state` flag in the 
