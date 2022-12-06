@@ -1,3 +1,9 @@
+## v0.1.2 (06 Dec 2022)
+
+FEATURES:
+
+* Introduce the `TFCOREMOCK_DYNAMIC_RESOURCES_FILE` environment variable. The location of the `dynamic_resources.json` file is now customisable.
+
 ## v0.1.1 (24 Nov 2022)
 
 FEATURES:
