@@ -190,13 +190,6 @@ func TestAccDynamicResourceWithComputedBlocks(t *testing.T) {
 }
 
 func TestAccDynamicResourceWithComputedSetBlocks(t *testing.T) {
-	// TODO(liamcervante): Investigate and enable this test case.
-	// This is the same as above with the nested block being a set instead of
-	// a list. I don't think there's any difference in the way my provider
-	// handles this so I think it's a bug in the framework.
-	// https://github.com/hashicorp/terraform-plugin-framework/issues/483
-	t.Skip()
-
 	t.Cleanup(CleanupTestingDirectories(t))
 	resource.Test(t, resource.TestCase{
 		ProtoV6ProviderFactories: ProviderFactories(LoadFile(t, "testdata/dynamic_computed_block_set/dynamic_resources.json")),
