@@ -50,15 +50,17 @@ We provide a simple example here. View the [examples](./examples) and
 [docs](./docs) subdirectories for more examples.
 
 In this example, we have a `tfcoremock_simple_resource` defined as a data source with
-an identifier of `my_simple_resource`. This means we create a file 
-`terraform.data/my_simple_resource.json` which defines a simple resource with
+an `id` of `my-simple-resource`. This means we create a file 
+`terraform.data/my-simple-resource.json` which defines a simple resource with
 a single integer set. We then define a dynamic resource called 
 `tfcoremock_dynamic_resource`. The dynamic resource holds a single integer, and is 
-defined in the `dynamic_resources.json` file. Note, that we do not define an 
-`id` field for this resource when we provide the definition. Despite this, we
-can still provide a value for the `id` in the configuration because the provider
-ensures that all resources have this attribute. In this example, we do provide
-a value for the `id` field. If we didn't the provider would generate one for us.
+defined in the `dynamic_resources.json` file.
+
+Note, that we do not define an  `id` field for this resource when we provide the
+definition. Despite this, we can still provide a value for the `id` in the
+configuration because the provider ensures that all resources have this attribute.
+In this example, we do provide a value for the `id` field. If we didn't, the provider
+would generate one for us.
 
 The following subsections show the Terraform configuration pre-apply and then
 show the extra files created post-apply.
@@ -71,34 +73,30 @@ terraform {
   required_providers {
     tfcoremock = {
       source  = "hashicorp/tfcoremock"
-      version = "1.0.0"
+      version = "0.1.2"
     }
   }
 }
 
-provider "tfcoremock" {
-  
-}
-
 data "tfcoremock_simple_resource" "my_simple_resource" {
-  id = "my_simple_resource"
+  id = "my-simple-resource"
 }
 
 resource "tfcoremock_dynamic_resource" "my_dynamic_resource" {
-  id = "my_dynamic_resource"
-  my_value = data.tfcoremock_simple_resource.my_simple_resource.integer
+  id = "my-dynamic-resource"
+  my_value = data.tfcoremock_simple_resource.my_simple_resource.integer + 1
 }
 ```
 
-#### **./terraform.data/my_data_source.json**
+#### **./terraform.data/my-simple-resource.json**
 ```json
 {
   "values": {
     "integer": {
-      "integer": 0
+      "number": "0"
     },
     "id": {
-      "string": "my_simple_resource"
+      "string": "my-simple-resource"
     }
   }
 }
@@ -123,15 +121,15 @@ resource "tfcoremock_dynamic_resource" "my_dynamic_resource" {
 In addition to the normal Terraform state and lock files, you will see the new
 resource we created has been written into the resource directory.
 
-#### **./terraform.resource/my_dynamic_resource.json**
+#### **./terraform.resource/my-dynamic-resource.json**
 ```json
 {
   "values": {
     "id": {
-      "string": "my_dynamic_resource"
+      "string": "my-dynamic-resource"
     },
     "my_value": {
-      "number": "0"
+      "number": "1"
     }
   }
 }
