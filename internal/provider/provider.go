@@ -9,10 +9,9 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
-	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
+	provider_schema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -115,20 +114,25 @@ func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.Con
 	}
 }
 
+func (m *tfcoremockProvider) Metadata(ctx context.Context, request provider.MetadataRequest, response *provider.MetadataResponse) {
+	response.Version = m.version
+	response.TypeName = "tfcoremock"
+}
+
 func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.Resource {
 	resources := []func() tfresource.Resource{
 		func() tfresource.Resource {
 			return resource.Resource{
-				Name:   "tfcoremock_complex_resource",
-				Schema: complex.Schema(3),
-				Client: m.client,
+				Name:           "tfcoremock_complex_resource",
+				InternalSchema: complex.Schema(3),
+				Client:         m.client,
 			}
 		},
 		func() tfresource.Resource {
 			return resource.Resource{
-				Name:   "tfcoremock_simple_resource",
-				Schema: simple.Schema,
-				Client: m.client,
+				Name:           "tfcoremock_simple_resource",
+				InternalSchema: simple.Schema,
+				Client:         m.client,
 			}
 		},
 	}
@@ -144,9 +148,9 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 		resourceSchema := schema
 		resources = append(resources, func() tfresource.Resource {
 			return resource.Resource{
-				Name:   resourceName,
-				Schema: resourceSchema,
-				Client: m.client,
+				Name:           resourceName,
+				InternalSchema: resourceSchema,
+				Client:         m.client,
 			}
 		})
 	}
@@ -158,16 +162,16 @@ func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasourc
 	datasources := []func() datasource.DataSource{
 		func() datasource.DataSource {
 			return resource.DataSource{
-				Name:   "tfcoremock_complex_resource",
-				Schema: complex.Schema(3),
-				Client: m.client,
+				Name:           "tfcoremock_complex_resource",
+				InternalSchema: complex.Schema(3),
+				Client:         m.client,
 			}
 		},
 		func() datasource.DataSource {
 			return resource.DataSource{
-				Name:   "tfcoremock_simple_resource",
-				Schema: simple.Schema,
-				Client: m.client,
+				Name:           "tfcoremock_simple_resource",
+				InternalSchema: simple.Schema,
+				Client:         m.client,
 			}
 		},
 	}
@@ -183,9 +187,9 @@ func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasourc
 		datasourceSchema := schema
 		datasources = append(datasources, func() datasource.DataSource {
 			return resource.DataSource{
-				Name:   datasourceName,
-				Schema: datasourceSchema,
-				Client: m.client,
+				Name:           datasourceName,
+				InternalSchema: datasourceSchema,
+				Client:         m.client,
 			}
 		})
 	}
@@ -193,31 +197,28 @@ func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasourc
 	return datasources
 }
 
-func (m *tfcoremockProvider) GetSchema(context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	return tfsdk.Schema{
+func (m *tfcoremockProvider) Schema(ctx context.Context, request provider.SchemaRequest, response *provider.SchemaResponse) {
+	response.Schema = provider_schema.Schema{
 		Description:         description,
 		MarkdownDescription: strings.ReplaceAll(markdownDescription, "''", "`"),
-		Attributes: map[string]tfsdk.Attribute{
-			"resource_directory": {
+		Attributes: map[string]provider_schema.Attribute{
+			"resource_directory": provider_schema.StringAttribute{
 				Description:         "The directory that the provider should use to write the human-readable JSON files for each managed resource. If `use_only_state` is set to `true` then this value does not matter. Defaults to `terraform.resource`.",
 				MarkdownDescription: "The directory that the provider should use to write the human-readable JSON files for each managed resource. If `use_only_state` is set to `true` then this value does not matter. Defaults to `terraform.resource`.",
 				Optional:            true,
-				Type:                types.StringType,
 			},
-			"data_directory": {
+			"data_directory": provider_schema.StringAttribute{
 				Description:         "The directory that the provider should use to read the human-readable JSON files for each requested data source. Defaults to `data.resource`.",
 				MarkdownDescription: "The directory that the provider should use to read the human-readable JSON files for each requested data source. Defaults to `data.resource`.",
 				Optional:            true,
-				Type:                types.StringType,
 			},
-			"use_only_state": {
+			"use_only_state": provider_schema.BoolAttribute{
 				Description:         "If set to true the provider will rely only on the Terraform state file to load managed resources and will not write anything to disk. Defaults to `false`.",
 				MarkdownDescription: "If set to true the provider will rely only on the Terraform state file to load managed resources and will not write anything to disk. Defaults to `false`.",
 				Optional:            true,
-				Type:                types.BoolType,
 			},
 		},
-	}, nil
+	}
 }
 
 func New(version string) func() provider.Provider {

@@ -3,13 +3,13 @@ provider "tfcoremock" {}
 resource "tfcoremock_dynamic_resource" "test" {
   set = [
     {
-      "custom-value": "zero",
+      "custom_value": "zero",
     },
     {
-      "custom-value": "one",
+      "custom_value": "one",
     },
     {
-      "custom-value": "two",
+      "custom_value": "two",
     }
   ]
 }

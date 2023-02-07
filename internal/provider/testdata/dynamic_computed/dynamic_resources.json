@@ -28,12 +28,12 @@
               "type": "string",
               "computed": true
             },
-            "optional-id": {
+            "optional_id": {
               "type": "string",
               "computed": true,
               "optional": true
             },
-            "custom-value": {
+            "custom_value": {
               "type": "string",
               "required": true
             }

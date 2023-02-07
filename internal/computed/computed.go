@@ -54,6 +54,10 @@ func generateComputedValuesForBlocks(values *map[string]data.Value, blocks map[s
 }
 
 func generateComputedValuesForBlock(values *[]data.Value, block schema.Block) error {
+	if values == nil {
+		return nil
+	}
+
 	for ix, value := range *values {
 		if err := generateComputedValuesForObject(value.Object, block.Attributes); err != nil {
 			return err
