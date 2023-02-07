@@ -5,10 +5,12 @@ package schema
 
 import (
 	"fmt"
+
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 	"github.com/pkg/errors"
+
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 )
 
 // Attribute defines an internal representation of a Terraform attribute in a
@@ -119,7 +121,7 @@ func attributesToTerraformResourceAttributes(attributes map[string]Attribute) (m
 func attributesToTerraformDataSourceAttributes(attributes map[string]Attribute) (map[string]datasource_schema.Attribute, error) {
 	tfAttributes := make(map[string]datasource_schema.Attribute)
 	for name, attribute := range attributes {
-		attribute, err := ToTerraformAttribute(attribute, resources)
+		attribute, err := ToTerraformAttribute(attribute, datasources)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to create attribute '%s'", name)
 		}
