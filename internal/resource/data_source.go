@@ -3,10 +3,8 @@ package resource
 import (
 	"context"
 	"fmt"
-
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/client"
@@ -17,24 +15,20 @@ import (
 var _ datasource.DataSource = DataSource{}
 
 type DataSource struct {
-	Name   string
-	Schema schema.Schema
-	Client client.Client
+	Name           string
+	InternalSchema schema.Schema
+	Client         client.Client
 }
 
 func (d DataSource) Metadata(ctx context.Context, request datasource.MetadataRequest, response *datasource.MetadataResponse) {
 	response.TypeName = d.Name
 }
 
-func (d DataSource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	schema, err := d.Schema.ToTerraformDataSourceSchema()
-	if err != nil {
-		diags.Append(diag.NewErrorDiagnostic("failed to build data source schea", err.Error()))
+func (d DataSource) Schema(ctx context.Context, request datasource.SchemaRequest, response *datasource.SchemaResponse) {
+	var err error
+	if response.Schema, err = d.InternalSchema.ToTerraformDataSourceSchema(); err != nil {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic(fmt.Sprintf("failed to build data source schema for '%s'", d.Name), err.Error()))
 	}
-
-	return schema, diags
 }
 
 func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {

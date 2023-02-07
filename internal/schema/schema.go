@@ -3,9 +3,10 @@ package schema
 import (
 	"errors"
 
-	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
-	"github.com/hashicorp/terraform-plugin-framework/types"
+	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	resource_schema_planmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
+	resource_schema_stringplanmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/stringplanmodifier"
 )
 
 // Schema defines an internal representation of a Terraform schema.
@@ -39,29 +40,31 @@ func (schema Schema) AllAttributes() map[string]Attribute {
 // Terraform SDK tfsdk.Schema. It automatically creates and attaches a computed
 // type called `id` that is required by every resource and data source in this
 // provider.
-func (schema Schema) ToTerraformResourceSchema() (tfsdk.Schema, error) {
-	out := tfsdk.Schema{
+func (schema Schema) ToTerraformResourceSchema() (resource_schema.Schema, error) {
+	out := resource_schema.Schema{
 		Description:         schema.Description,
 		MarkdownDescription: schema.MarkdownDescription,
 	}
 
 	var err error
-	if out.Attributes, err = schema.getTerraformAttributes(); err != nil {
+	if err = schema.validateAttributes(); err != nil {
 		return out, err
 	}
 
-	out.Attributes["id"] = tfsdk.Attribute{
+	if out.Attributes, err = attributesToTerraformResourceAttributes(schema.Attributes); err != nil {
+		return out, err
+	}
+	out.Attributes["id"] = resource_schema.StringAttribute{
 		Required: false,
 		Optional: true,
 		Computed: true,
-		PlanModifiers: tfsdk.AttributePlanModifiers{
-			resource.UseStateForUnknown(),
-			resource.RequiresReplace(),
+		PlanModifiers: []resource_schema_planmodifier.String{
+			resource_schema_stringplanmodifier.UseStateForUnknown(),
+			resource_schema_stringplanmodifier.RequiresReplace(),
 		},
-		Type: types.StringType,
 	}
 
-	if out.Blocks, err = schema.getTerraformBlocks(); err != nil {
+	if out.Blocks, err = blocksToTerraformResourceBlocks(schema.Blocks); err != nil {
 		return out, err
 	}
 
@@ -72,42 +75,37 @@ func (schema Schema) ToTerraformResourceSchema() (tfsdk.Schema, error) {
 // Terraform SDK tfsdk.Schema. It automatically creates and attaches a required
 // attribute called `id` that is required by every resource and data source in
 // this provider.
-func (schema Schema) ToTerraformDataSourceSchema() (tfsdk.Schema, error) {
-	out := tfsdk.Schema{
+func (schema Schema) ToTerraformDataSourceSchema() (datasource_schema.Schema, error) {
+	out := datasource_schema.Schema{
 		Description:         schema.Description,
 		MarkdownDescription: schema.MarkdownDescription,
 	}
 
 	var err error
-	if out.Attributes, err = schema.getTerraformAttributes(); err != nil {
+	if err = schema.validateAttributes(); err != nil {
 		return out, err
 	}
 
-	out.Attributes["id"] = tfsdk.Attribute{
+	if out.Attributes, err = attributesToTerraformDataSourceAttributes(schema.Attributes); err != nil {
+		return out, err
+	}
+
+	out.Attributes["id"] = datasource_schema.StringAttribute{
 		Required: true,
 		Optional: false,
 		Computed: false,
-		PlanModifiers: tfsdk.AttributePlanModifiers{
-			resource.UseStateForUnknown(),
-			resource.RequiresReplace(),
-		},
-		Type: types.StringType,
 	}
 
-	if out.Blocks, err = schema.getTerraformBlocks(); err != nil {
+	if out.Blocks, err = blocksToTerraformDataSourceBlocks(schema.Blocks); err != nil {
 		return out, err
 	}
 
 	return out, nil
 }
 
-func (schema Schema) getTerraformAttributes() (map[string]tfsdk.Attribute, error) {
+func (schema Schema) validateAttributes() error {
 	if _, ok := schema.Attributes["id"]; ok {
-		return nil, errors.New("top level dynamic objects cannot define a value called `id` as the provider will generate an identifier for them")
+		return errors.New("top level dynamic objects cannot define a value called `id` as the provider will generate an identifier for them")
 	}
-	return attributesToTerraformAttributes(schema.Attributes)
-}
-
-func (schema Schema) getTerraformBlocks() (map[string]tfsdk.Block, error) {
-	return blocksToTerraformBlocks(schema.Blocks)
+	return nil
 }

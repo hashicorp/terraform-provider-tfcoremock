@@ -2,12 +2,12 @@ package resource
 
 import (
 	"context"
+	"fmt"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/resource"
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
 	"github.com/hashicorp/terraform-plugin-go/tftypes"
 
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/computed"
@@ -21,24 +21,20 @@ var _ resource.Resource = Resource{}
 var _ resource.ResourceWithImportState = Resource{}
 
 type Resource struct {
-	Name   string
-	Schema schema.Schema
-	Client client.Client
+	Name           string
+	InternalSchema schema.Schema
+	Client         client.Client
 }
 
 func (r Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
 	response.TypeName = r.Name
 }
 
-func (r Resource) GetSchema(ctx context.Context) (tfsdk.Schema, diag.Diagnostics) {
-	var diags diag.Diagnostics
-
-	schema, err := r.Schema.ToTerraformResourceSchema()
-	if err != nil {
-		diags.Append(diag.NewErrorDiagnostic("failed to build resource schema", err.Error()))
+func (r Resource) Schema(ctx context.Context, request resource.SchemaRequest, response *resource.SchemaResponse) {
+	var err error
+	if response.Schema, err = r.InternalSchema.ToTerraformResourceSchema(); err != nil {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic(fmt.Sprintf("failed to build resource schema for '%s'", r.Name), err.Error()))
 	}
-
-	return schema, diags
 }
 
 func (r Resource) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
@@ -48,7 +44,7 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 		return
 	}
 
-	if err := computed.GenerateComputedValues(resource, r.Schema); err != nil {
+	if err := computed.GenerateComputedValues(resource, r.InternalSchema); err != nil {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to generate computed values", err.Error()))
 		return
 	}

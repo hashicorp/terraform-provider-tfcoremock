@@ -1,9 +1,11 @@
 package schema
 
 import (
-	"errors"
+	"fmt"
 
-	"github.com/hashicorp/terraform-plugin-framework/tfsdk"
+	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
+	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
+	"github.com/pkg/errors"
 )
 
 const (
@@ -24,59 +26,114 @@ type Block struct {
 	Mode       string               `json:"mode"`
 }
 
+type ToListBlock[B any, A any] func(block Block, blocks map[string]B, attributes map[string]A) *B
+type ToSetBlock[B any, A any] func(block Block, blocks map[string]B, attributes map[string]A) *B
+
 // ToTerraformBlock converts our representation of a Block into a Terraform SDK
 // block so it can be passed back to Terraform Core in a resource or data source
 // schema.
-func (b Block) ToTerraformBlock() (tfsdk.Block, error) {
-	tfAttributes := make(map[string]tfsdk.Attribute)
-	tfBlocks := make(map[string]tfsdk.Block)
+func ToTerraformBlock[B, A any](b Block, toListBlock ToListBlock[B, A], toSetBlock ToSetBlock[B, A], attributeTypes *AttributeTypes[A]) (*B, error) {
+	tfAttributes := make(map[string]A)
+	tfBlocks := make(map[string]B)
 
 	for name, attribute := range b.Attributes {
-		tfAttribute, err := attribute.ToTerraformAttribute()
+		attribute, err := ToTerraformAttribute(attribute, attributeTypes)
 		if err != nil {
-			return tfsdk.Block{}, err
+			return nil, errors.Wrapf(err, "failed to create attribute '%s'", name)
 		}
-		tfAttributes[name] = tfAttribute
+		tfAttributes[name] = *attribute
 	}
 
 	for name, block := range b.Blocks {
-		tfBlock, err := block.ToTerraformBlock()
+		block, err := ToTerraformBlock(block, toListBlock, toSetBlock, attributeTypes)
 		if err != nil {
-			return tfsdk.Block{}, err
+			return nil, errors.Wrapf(err, "failed to create block '%s'", name)
 		}
-		tfBlocks[name] = tfBlock
+		tfBlocks[name] = *block
 	}
 
 	switch b.Mode {
 	case "", NestingModeList:
-		return tfsdk.Block{
-			Description:         b.Description,
-			MarkdownDescription: b.MarkdownDescription,
-			Attributes:          tfAttributes,
-			Blocks:              tfBlocks,
-			NestingMode:         tfsdk.BlockNestingModeList,
-		}, nil
+		return toListBlock(b, tfBlocks, tfAttributes), nil
 	case NestingModeSet:
-		return tfsdk.Block{
-			Description:         b.Description,
-			MarkdownDescription: b.MarkdownDescription,
-			Attributes:          tfAttributes,
-			Blocks:              tfBlocks,
-			NestingMode:         tfsdk.BlockNestingModeSet,
-		}, nil
+		return toSetBlock(b, tfBlocks, tfAttributes), nil
 	default:
-		return tfsdk.Block{}, errors.New("invalid nesting mode: " + b.Mode)
+		return nil, fmt.Errorf("invalid nesting mode '%s'", b.Mode)
 	}
 }
 
-func blocksToTerraformBlocks(blocks map[string]Block) (map[string]tfsdk.Block, error) {
-	tfBlocks := make(map[string]tfsdk.Block)
-	for name, block := range blocks {
-		tfBlock, err := block.ToTerraformBlock()
-		if err != nil {
-			return nil, err
+func blocksToTerraformResourceBlocks(blocks map[string]Block) (map[string]resource_schema.Block, error) {
+	toListBlock := func(block Block, blocks map[string]resource_schema.Block, attributes map[string]resource_schema.Attribute) *resource_schema.Block {
+		var tfBlock resource_schema.Block
+		tfBlock = resource_schema.ListNestedBlock{
+			Description:         block.Description,
+			MarkdownDescription: block.MarkdownDescription,
+			NestedObject: resource_schema.NestedBlockObject{
+				Attributes: attributes,
+				Blocks:     blocks,
+			},
 		}
-		tfBlocks[name] = tfBlock
+		return &tfBlock
+	}
+
+	toSetBlock := func(block Block, blocks map[string]resource_schema.Block, attributes map[string]resource_schema.Attribute) *resource_schema.Block {
+		var tfBlock resource_schema.Block
+		tfBlock = resource_schema.SetNestedBlock{
+			Description:         block.Description,
+			MarkdownDescription: block.MarkdownDescription,
+			NestedObject: resource_schema.NestedBlockObject{
+				Attributes: attributes,
+				Blocks:     blocks,
+			},
+		}
+		return &tfBlock
+	}
+
+	tfBlocks := make(map[string]resource_schema.Block)
+	for name, block := range blocks {
+		block, err := ToTerraformBlock(block, toListBlock, toSetBlock, resources)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to create block '%s'", name)
+		}
+		tfBlocks[name] = *block
+	}
+	return tfBlocks, nil
+}
+
+func blocksToTerraformDataSourceBlocks(blocks map[string]Block) (map[string]datasource_schema.Block, error) {
+	toListBlock := func(block Block, blocks map[string]datasource_schema.Block, attributes map[string]datasource_schema.Attribute) *datasource_schema.Block {
+		var tfBlock datasource_schema.Block
+		tfBlock = datasource_schema.ListNestedBlock{
+			Description:         block.Description,
+			MarkdownDescription: block.MarkdownDescription,
+			NestedObject: datasource_schema.NestedBlockObject{
+				Attributes: attributes,
+				Blocks:     blocks,
+			},
+		}
+		return &tfBlock
+	}
+
+	toSetBlock := func(block Block, blocks map[string]datasource_schema.Block, attributes map[string]datasource_schema.Attribute) *datasource_schema.Block {
+		var tfBlock datasource_schema.Block
+		tfBlock = datasource_schema.SetNestedBlock{
+			Description:         block.Description,
+			MarkdownDescription: block.MarkdownDescription,
+			NestedObject: datasource_schema.NestedBlockObject{
+				Attributes: attributes,
+				Blocks:     blocks,
+			},
+		}
+		return &tfBlock
+	}
+
+	tfBlocks := make(map[string]datasource_schema.Block)
+	for name, block := range blocks {
+		block, err := ToTerraformBlock(block, toListBlock, toSetBlock, datasources)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to create block '%s'", name)
+		}
+		tfBlocks[name] = *block
 	}
 	return tfBlocks, nil
 }
