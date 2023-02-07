@@ -99,6 +99,8 @@ func ToTerraformAttribute[A any](a Attribute, types *AttributeTypes[A]) (*A, err
 		}
 
 		return types.asNestedObject(a)
+	case "":
+		return nil, fmt.Errorf("missing attribute type")
 	default:
 		return nil, fmt.Errorf("unrecognized attribute type '%s'", a.Type)
 	}

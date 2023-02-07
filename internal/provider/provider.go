@@ -5,6 +5,7 @@ package provider
 
 import (
 	"context"
+	"fmt"
 	"os"
 	"strings"
 
@@ -13,8 +14,6 @@ import (
 	provider_schema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
 	"github.com/hashicorp/terraform-plugin-framework/types"
-	"github.com/hashicorp/terraform-plugin-log/tflog"
-
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/client"
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/resource"
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/complex"
@@ -139,8 +138,19 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 
 	schemas, err := m.reader.Read()
 	if err != nil {
-		tflog.Error(ctx, err.Error())
-		return resources
+		// This isn't ideal, as the plugin will tell the user this is a problem
+		// with the provider. It's not though, this means the provided dynamic
+		// resources file either wasn't valid JSON or didn't match our schema.
+		//
+		// We don't have a way to raise an error through the plugin at this
+		// point in time though, so the only thing we can really do is panic.
+		//
+		// We add a lot of context to this panic to try and make the caller
+		// realise exactly what the problem is.
+		panic(fmt.Sprintf("The tfcoremock provider either failed to parse or failed to validate your dynamic resources file. "+
+			"Terraform will say this is a problem in the provider, but in this case it is a problem in your dynamic resources file. "+
+			"We have the following error from the parser, hopefully it provides additional context about the problem but these errors are not always helpful."+
+			"\n\n%s\n", err.Error()))
 	}
 
 	for name, schema := range schemas {
@@ -178,8 +188,19 @@ func (m *tfcoremockProvider) DataSources(ctx context.Context) []func() datasourc
 
 	schemas, err := m.reader.Read()
 	if err != nil {
-		tflog.Error(ctx, err.Error())
-		return datasources
+		// This isn't ideal, as the plugin will tell the user this is a problem
+		// with the provider. It's not though, this means the provided dynamic
+		// resources file either wasn't valid JSON or didn't match our schema.
+		//
+		// We don't have a way to raise an error through the plugin at this
+		// point in time though, so the only thing we can really do is panic.
+		//
+		// We add a lot of context to this panic to try and make the caller
+		// realise exactly what the problem is.
+		panic(fmt.Sprintf("The tfcoremock provider either failed to parse or failed to validate your dynamic resources file. "+
+			"Terraform will say this is a problem in the provider, but in this case it is a problem in your dynamic resources file. "+
+			"We have the following error from the parser, hopefully it provides additional context about the problem but these errors are not always helpful."+
+			"\n\n%s\n", err.Error()))
 	}
 
 	for name, schema := range schemas {
