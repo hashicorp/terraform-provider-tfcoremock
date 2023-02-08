@@ -5,10 +5,12 @@ package schema
 
 import (
 	"fmt"
+
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
-	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 	"github.com/pkg/errors"
+
+	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 )
 
 // Attribute defines an internal representation of a Terraform attribute in a

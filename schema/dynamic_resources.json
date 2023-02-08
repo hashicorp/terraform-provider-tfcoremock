@@ -60,7 +60,7 @@
       "type": "object",
       "properties": {
         "boolean": { "type":  "boolean" },
-        "number": { "type": "number" },
+        "number": { "type": "string" },
         "string": { "type": "string" },
         "list": {
           "type": "array",

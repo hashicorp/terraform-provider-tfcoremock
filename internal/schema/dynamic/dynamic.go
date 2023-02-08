@@ -13,10 +13,7 @@ import (
 	"github.com/xeipuuv/gojsonschema"
 
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
-)
-
-const (
-	dynamicResourcesSchemaEnvVarName = "TFCOREMOCK_DYNAMIC_RESOURCES_SCHEMA"
+	jsonschema "github.com/hashicorp/terraform-provider-tfcoremock/schema"
 )
 
 type Reader interface {
@@ -32,15 +29,13 @@ type StringReader struct {
 }
 
 func (r FileReader) Read() (map[string]schema.Schema, error) {
-	dynamicResourcesSchema := "https://raw.githubusercontent.com/hashicorp/terraform-provider-tfcoremock/main/schema/dynamic_resources.json"
-	if dynamicResourcesSchemaEnvVar := os.Getenv(dynamicResourcesSchemaEnvVarName); dynamicResourcesSchemaEnvVar != "" {
-		dynamicResourcesSchema = dynamicResourcesSchemaEnvVar
-	}
-
-	schemaLoader := gojsonschema.NewReferenceLoader(dynamicResourcesSchema)
+	schemaLoader := gojsonschema.NewStringLoader(jsonschema.DynamicResourcesJsonSchema)
 
 	data, err := os.ReadFile(r.File)
 	if err != nil {
+		// TODO(liamcervante): It's okay if there is no dynamic_resources.json
+		//   file, but if the user has set the environment variable changing the
+		//   location maybe we should complain about it?
 		if os.IsNotExist(err) {
 			return nil, nil
 		}
