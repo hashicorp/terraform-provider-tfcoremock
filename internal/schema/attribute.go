@@ -18,6 +18,13 @@ import (
 //
 // It is designed to be read dynamically from a JSON object, allowing schemas,
 // blocks and attributes to be defined dynamically by the user of the provider.
+//
+// For data sources, the values provided in the optional, required and computed
+// field are ignored. All data source attributes are computed, with optional and
+// required being set to false regardless of the actual values for those fields.
+// The generated ID attribute is unique and marked as required and not computed
+// as it is used to identify the data source and retrieve it during the
+// Terraform operations.
 type Attribute struct {
 	Description         string `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.
 	MarkdownDescription string `json:"-"` // Dynamic resources don't need descriptions so hide them from the exposed JSON schema.

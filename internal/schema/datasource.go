@@ -32,9 +32,9 @@ func asDataSourceBool(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.BoolAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -47,9 +47,9 @@ func asDataSourceFloat(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.Float64Attribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -62,9 +62,9 @@ func asDataSourceInteger(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.Int64Attribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -77,9 +77,9 @@ func asDataSourceNumber(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.NumberAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -92,9 +92,9 @@ func asDataSourceString(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.StringAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -107,9 +107,9 @@ func asDataSourceList(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.ListAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -128,9 +128,9 @@ func asDataSourceNestedList(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.ListNestedAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -148,9 +148,9 @@ func asDataSourceMap(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.MapAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -169,9 +169,9 @@ func asDataSourceNestedMap(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.MapNestedAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -189,9 +189,9 @@ func asDataSourceSet(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.SetAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -210,9 +210,9 @@ func asDataSourceNestedSet(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.SetNestedAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -230,9 +230,9 @@ func asDataSourceObject(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.ObjectAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
@@ -255,9 +255,9 @@ func asDataSourceNestedObject(attribute Attribute) (*schema.Attribute, error) {
 	tfAttribute := schema.SingleNestedAttribute{
 		Description:         attribute.Description,
 		MarkdownDescription: attribute.MarkdownDescription,
-		Optional:            attribute.Optional,
-		Required:            attribute.Required,
-		Computed:            attribute.Computed,
+		Optional:            false,
+		Required:            false,
+		Computed:            true,
 		Sensitive:           attribute.Sensitive,
 	}
 
