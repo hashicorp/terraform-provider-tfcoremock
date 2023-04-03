@@ -14,9 +14,9 @@ jobs:
     outputs:
       version: ${{ steps.go-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - id: go-version
-        run: echo "::set-output name=version::$(cat ./.go-version)"
+        run: echo "version=$(cat ./.go-version)" >> "$GITHUB_OUTPUT"
   release-notes:
     runs-on: ubuntu-latest
     steps:
@@ -33,7 +33,7 @@ jobs:
   terraform-provider-release:
     name: 'Terraform Provider Release'
     needs: [go-version, release-notes]
-    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@v2
+    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@01981baad5d35ce2342924e60ae91cf69fe31fd0 # v2.3.0
     secrets:
       hc-releases-github-token: '${{ secrets.HASHI_RELEASES_GITHUB_TOKEN }}'
       hc-releases-host-prod: '${{ secrets.HC_RELEASES_HOST_PROD }}'
