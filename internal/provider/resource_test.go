@@ -383,3 +383,18 @@ func TestAccSimpleResourceWithId(t *testing.T) {
 		},
 	})
 }
+
+func TestAccSimpleResourceWithDependsOn(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(""),
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/depends_on/create/main.tf"),
+				Check: resource.ComposeAggregateTestCheckFunc(
+					resource.TestCheckResourceAttr("tfcoremock_simple_resource.example_one", "string", "resource_module1"),
+					resource.TestCheckResourceAttr("tfcoremock_simple_resource.example_two", "string", "data")),
+			},
+		},
+	})
+}
