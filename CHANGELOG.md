@@ -1,3 +1,9 @@
+## v0.1.3 (03 Apr 2023)
+
+BUG FIXES:
+
+* Fix bug in which data sources that were not setting the computed status for their attributes. ([#48](https://github.com/hashicorp/terraform-provider-tfcoremock/issues/48))
+
 ## v0.1.2 (06 Dec 2022)
 
 FEATURES:
