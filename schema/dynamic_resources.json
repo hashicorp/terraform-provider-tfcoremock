@@ -59,23 +59,23 @@
     "value": {
       "type": "object",
       "properties": {
-        "boolean": { "type":  "boolean" },
-        "number": { "type": "string" },
-        "string": { "type": "string" },
+        "boolean": { "type":  ["boolean", "null"] },
+        "number": { "type": ["string", "null"] },
+        "string": { "type": ["string", "null"] },
         "list": {
-          "type": "array",
+          "type": ["array", "null"],
           "items": { "$ref": "#/definitions/value" }
         },
         "map": {
-          "type": "object",
+          "type": ["object", "null"],
           "additionalProperties": { "$ref": "#/definitions/value" }
         },
         "object": {
-          "type": "object",
+          "type": ["object", "null"],
           "additionalProperties": { "$ref": "#/definitions/value" }
         },
         "set": {
-          "type": "array",
+          "type": ["array", "null"],
           "items": { "$ref": "#/definitions/value" }
         }
       },
