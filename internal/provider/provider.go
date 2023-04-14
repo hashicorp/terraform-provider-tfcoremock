@@ -100,11 +100,11 @@ func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.Con
 		resourceDirectory := "terraform.resource"
 
 		if !data.DataDirectory.IsNull() {
-			dataDirectory = data.DataDirectory.String()
+			dataDirectory = data.DataDirectory.ValueString()
 		}
 
 		if !data.ResourceDirectory.IsNull() {
-			resourceDirectory = data.ResourceDirectory.String()
+			resourceDirectory = data.ResourceDirectory.ValueString()
 		}
 
 		m.client = client.Local{
