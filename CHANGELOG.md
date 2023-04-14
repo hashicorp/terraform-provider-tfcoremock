@@ -1,3 +1,13 @@
+## v0.2.0 (14 Apr 2023)
+
+ENHANCEMENTS:
+
+* Computed attributes in dynamic resources will no longer create default values, but will return null values by default. Users can still specify concrete values for computed attributes to return. ([#51](https://github.com/hashicorp/terraform-provider-tfcoremock/issues/51))
+
+BUG FIXES:
+
+* Fix bug in which custom values for the resource and data directories were being interpreted incorrectly, meaning custom resource and data directories were unusable. ([#52](https://github.com/hashicorp/terraform-provider-tfcoremock/issues/52))
+
 ## v0.1.3 (03 Apr 2023)
 
 BUG FIXES:

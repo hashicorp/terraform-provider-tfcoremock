@@ -89,7 +89,7 @@ func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.Con
 	if data.UseOnlyState.ValueBool() {
 		directory := "terraform.data"
 		if !data.DataDirectory.IsNull() {
-			directory = data.DataDirectory.String()
+			directory = data.DataDirectory.ValueString()
 		}
 
 		m.client = client.State{

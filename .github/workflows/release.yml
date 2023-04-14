@@ -17,14 +17,23 @@ jobs:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - id: go-version
         run: echo "version=$(cat ./.go-version)" >> "$GITHUB_OUTPUT"
+  release-version:
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release-version.outputs.version }}
+    steps:
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
+      - id: release-version
+        run: echo "version=${GITHUB_REF#refs/*/}" >> "GITHUB_OUTPUT"
   release-notes:
     runs-on: ubuntu-latest
+    needs: release-version
+    env:
+      RELEASE_VERSION: ${{ needs.release-version.outputs.version }}
     steps:
-      - uses: actions/checkout@v3
-        with:
-          fetch-depth: 0
+      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate Release Notes
-        run: sed -n -e "1{/# /d;}" -e "2{/^$/d;}" -e "/# $(git describe --abbrev=0 --exclude="$(git describe --abbrev=0 --match='v*.*.*' --tags)" --match='v*.*.*' --tags | tr -d v)/q;p" CHANGELOG.md > release-notes.txt
+        run: awk -v ver=${RELEASE_VERSION} '/^## / { if (p) { exit }; if ($2 == ver) { p=1; next } } p' CHANGELOG.md > release-notes.txt
       - uses: actions/upload-artifact@v3
         with:
           name: release-notes
