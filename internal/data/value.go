@@ -230,7 +230,7 @@ func objectFromTerraform5Value(v tftypes.Value) (Value, error) {
 
 	values := make(map[string]Value)
 	for name, child := range children {
-		if child.IsNull() {
+		if child.IsNull() || !child.IsKnown() {
 			// Terraform handles unset objects differently to us. We just don't
 			// add unset attributes to our objects while terraform adds them
 			// but sets them to null. If this child value is null in the
@@ -239,6 +239,9 @@ func objectFromTerraform5Value(v tftypes.Value) (Value, error) {
 			// Note, the reverse implementation in objectToTerrafrom5Value. We
 			// check the type information and set any missing attributes as null
 			// when converting into the terraform representation.
+			//
+			// For now, we also treat unknown values the same as null by just
+			// skipping them. Any computed values will be filled in later.
 			continue
 		}
 

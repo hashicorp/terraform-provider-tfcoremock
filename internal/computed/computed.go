@@ -5,10 +5,7 @@ package computed
 
 import (
 	"errors"
-	"math/big"
-
-	"github.com/hashicorp/go-uuid"
-
+	"fmt"
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/data"
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema"
 )
@@ -147,72 +144,16 @@ func generateComputedValuesForObject(values *map[string]data.Value, attributes m
 			continue
 		}
 
-		// If we get here, then it means we don't have a value for the target
-		// attribute so we're going to have to get one from somewhere.
-
 		if attribute.Value != nil {
-			// The user has provided us with a value, so this is very easy.
-			(*values)[key] = *attribute.Value
-			continue
-		}
-
-		if !attribute.Required && !attribute.Computed {
-			// We don't actually need to provide anything, so let's just skip
-			// over this.
-			//
-			// Note, that we are actually creating values for required
-			// attributes within computed objects at this point. We are relying
-			// on Terraform Core and the SDK to properly validate the config, so
-			// we do trust that any required but non-computed attributes have
-			// been properly set in the configuration.
-			continue
-		}
-
-		// Finally, we are in the unhappy position of having to generate a
-		// value.
-
-		switch attribute.Type {
-		case schema.Boolean:
-			value := false
-			(*values)[key] = data.Value{
-				Boolean: &value,
+			if !attribute.Computed {
+				// If we didn't check this, it would just cause another error
+				// later but at least here we can return a nice error message.
+				return fmt.Errorf("attribute %s has specified a value in the json schema without being marked as computed", key)
 			}
-		case schema.Float, schema.Integer, schema.Number:
-			(*values)[key] = data.Value{
-				Number: big.NewFloat(0),
-			}
-		case schema.String:
-			value, err := uuid.GenerateUUID()
-			if err != nil {
+			var err error
+			if (*values)[key], err = generateComputedValue(*attribute.Value, &attribute); err != nil {
 				return err
 			}
-			(*values)[key] = data.Value{
-				String: &value,
-			}
-		case schema.List:
-			(*values)[key] = data.Value{
-				List: &[]data.Value{},
-			}
-		case schema.Map:
-			(*values)[key] = data.Value{
-				Map: &map[string]data.Value{},
-			}
-		case schema.Set:
-			(*values)[key] = data.Value{
-				Set: &[]data.Value{},
-			}
-		case schema.Object:
-			// The object is the only tricky one, as we can't just set it as
-			// empty.
-			childValues := make(map[string]data.Value)
-			if err := generateComputedValuesForObject(&childValues, attribute.Object); err != nil {
-				return err
-			}
-			(*values)[key] = data.Value{
-				Object: &childValues,
-			}
-		default:
-			return errors.New("unrecognized attribute type: " + string(attribute.Type))
 		}
 	}
 

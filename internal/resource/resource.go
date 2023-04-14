@@ -6,6 +6,7 @@ package resource
 import (
 	"context"
 	"fmt"
+	"github.com/hashicorp/go-uuid"
 	"os"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
@@ -42,11 +43,24 @@ func (r Resource) Schema(ctx context.Context, request resource.SchemaRequest, re
 
 func (r Resource) Create(ctx context.Context, request resource.CreateRequest, response *resource.CreateResponse) {
 	resource := &data.Resource{}
-	response.Diagnostics.Append(request.Config.Get(ctx, &resource)...)
+	response.Diagnostics.Append(request.Plan.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
 
+	// The root ID is a special computed value.
+	if _, ok := resource.Values["id"]; !ok {
+		id, err := uuid.GenerateUUID()
+		if err != nil {
+			response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to generate id", err.Error()))
+			return
+		}
+		resource.Values["id"] = data.Value{
+			String: &id,
+		}
+	}
+
+	// Now go and do the rest of the computed values.
 	if err := computed.GenerateComputedValues(resource, r.InternalSchema); err != nil {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to generate computed values", err.Error()))
 		return
@@ -96,6 +110,11 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 
 	response.Diagnostics.Append(request.Plan.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {
+		return
+	}
+
+	if err := computed.GenerateComputedValues(resource, r.InternalSchema); err != nil {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to generate computed values", err.Error()))
 		return
 	}
 

@@ -155,12 +155,8 @@ func TestAccDynamicResourceWithComputed(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "object_with_value.boolean", "true"),
 					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "object_with_value.string", "hello"),
-					resource.TestCheckResourceAttrSet("tfcoremock_dynamic_resource.test", "computed_object.id"),
 					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "computed_list.#", "0"),
-					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "set.#", "3"),
-					resource.TestCheckResourceAttrSet("tfcoremock_dynamic_resource.test", "set.0.id"),
-					resource.TestCheckResourceAttrSet("tfcoremock_dynamic_resource.test", "set.1.id"),
-					resource.TestCheckResourceAttrSet("tfcoremock_dynamic_resource.test", "set.2.id")),
+					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "set.#", "3")),
 			},
 			{
 				Config: LoadFile(t, "testdata/dynamic/delete/main.tf"),
@@ -180,9 +176,6 @@ func TestAccDynamicResourceWithComputedBlocks(t *testing.T) {
 					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "other.#", "2"),
 					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "other.0.id", "my-id"),
 					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "other.0.nested.#", "2"),
-					resource.TestCheckResourceAttrSet("tfcoremock_dynamic_resource.test", "other.0.nested.0.id"),
-					resource.TestCheckResourceAttrSet("tfcoremock_dynamic_resource.test", "other.0.nested.1.id"),
-					resource.TestCheckResourceAttrSet("tfcoremock_dynamic_resource.test", "other.1.id"),
 					resource.TestCheckResourceAttr("tfcoremock_dynamic_resource.test", "object.#", "0")),
 			},
 			{
