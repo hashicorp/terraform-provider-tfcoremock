@@ -17,19 +17,10 @@ jobs:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - id: go-version
         run: echo "version=$(cat ./.go-version)" >> "$GITHUB_OUTPUT"
-  release-version:
-    runs-on: ubuntu-latest
-    outputs:
-      version: ${{ steps.release-version.outputs.version }}
-    steps:
-      - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
-      - id: release-version
-        run: echo "version=${GITHUB_REF#refs/*/}" >> "GITHUB_OUTPUT"
   release-notes:
     runs-on: ubuntu-latest
-    needs: release-version
     env:
-      RELEASE_VERSION: ${{ needs.release-version.outputs.version }}
+      RELEASE_VERSION: ${{ github.ref_name }}
     steps:
       - uses: actions/checkout@ac593985615ec2ede58e132d2e21d2b1cbd6127c # v3.3.0
       - name: Generate Release Notes
