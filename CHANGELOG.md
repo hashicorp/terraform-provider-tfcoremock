@@ -1,3 +1,9 @@
+## v0.2.1 (Unreleased)
+
+ENHANCEMENTS:
+
+* Destroying the last managed resource in a workspace will now cause the provider to also tidy up and remove the resource directory itself. ([#54](https://github.com/hashicorp/terraform-provider-tfcoremock/issues/54))
+
 ## v0.2.0 (14 Apr 2023)
 
 ENHANCEMENTS:
