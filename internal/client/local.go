@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"os"
 	"path"
 
@@ -98,6 +99,34 @@ func (local Local) DeleteResource(ctx context.Context, id string) error {
 		return err
 	}
 
+	// If the directory is empty after we've deleted this resource, let's tidy
+	// up and delete the directory as well.
+	resources, err := os.Open(local.ResourceDirectory)
+	if err != nil {
+		// Something weird has happened, but we're not going to fail the whole
+		// delete operation just cos we couldn't clean up the directory.
+		tflog.Info(ctx, fmt.Sprintf("couldn't open resource directory at (%s) to tidy up: %v", local.ResourceDirectory, err))
+		return nil
+	}
+
+	files, err := resources.Readdirnames(1)
+	if len(files) > 0 {
+		// Then we're not going to do anything, there are still other files or
+		// resources within this directory.
+		return nil
+	}
+
+	if err == io.EOF {
+		// Then we returned an empty slice of files because the directory is
+		// empty - let's delete the directory then. This is an acceptable
+		// outcome, so we're not going to log anything.
+		_ = os.Remove(local.ResourceDirectory)
+		return nil
+	}
+
+	// Then something else caused us to return an empty slice. We'll be cautious
+	// and log the error but not delete the directory.
+	tflog.Info(ctx, fmt.Sprintf("failed to query if the resource directory at (%s) was empty: %v", local.ResourceDirectory, err))
 	return nil
 }
 

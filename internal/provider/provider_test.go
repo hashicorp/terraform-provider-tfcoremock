@@ -32,7 +32,7 @@ func LoadFile(t *testing.T, file string) string {
 
 func CleanupTestingDirectories(t *testing.T) func() {
 	return func() {
-		files, err := os.ReadDir("terraform.resource")
+		_, err := os.ReadDir("terraform.resource")
 		if err != nil {
 			if os.IsNotExist(err) {
 				return // Then it's fine.
@@ -40,11 +40,7 @@ func CleanupTestingDirectories(t *testing.T) func() {
 
 			t.Fatalf("could not read the resource directory for cleanup: %v", err)
 		}
-		defer os.Remove("terraform.resource")
-
-		if len(files) != 0 {
-			t.Fatalf("failed to tidy up after test")
-		}
+		t.Fatalf("test should have deleted the resource directory on completion")
 	}
 }
 
