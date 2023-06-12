@@ -2105,5 +2105,3 @@ Optional:
 - `integer` (Number) An optional integer attribute.
 - `number` (Number) An optional number attribute, can be an integer or a float.
 - `string` (String) An optional string attribute.
-
-

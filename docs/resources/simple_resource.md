@@ -37,5 +37,3 @@ resource "tfcoremock_simple_resource" "example" {
 ### Read-Only
 
 - `id` (String) The ID of this resource.
-
-
