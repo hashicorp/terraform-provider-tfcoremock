@@ -42,7 +42,7 @@ resource and data directories.
 ## Requirements
 
 - [Terraform](https://www.terraform.io/downloads.html) >= 1.0
-- [Go](https://golang.org/doc/install) >= 1.18
+- [Go](https://golang.org/doc/install) >= 1.21
 
 ## Using the provider
 
