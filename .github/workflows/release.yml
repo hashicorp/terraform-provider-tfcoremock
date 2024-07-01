@@ -14,7 +14,7 @@ jobs:
     outputs:
       version: ${{ steps.go-version.outputs.version }}
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - id: go-version
         run: echo "version=$(cat ./.go-version)" >> "$GITHUB_OUTPUT"
   release-notes:
@@ -22,7 +22,7 @@ jobs:
     env:
       RELEASE_VERSION: ${{ github.ref_name }}
     steps:
-      - uses: actions/checkout@a5ac7e51b41094c92402da3b24376905380afc29 # v4.1.6
+      - uses: actions/checkout@692973e3d937129bcbf40652eb9f2f61becf3332 # v4.1.7
       - name: Generate Release Notes
         run: awk -v ver=${RELEASE_VERSION} '/^## / { if (p) { exit }; if ($2 == ver) { p=1; next } } p' CHANGELOG.md > release-notes.txt
       - uses: actions/upload-artifact@65462800fd760344b1a7b4382951275a0abb4808 # v4.3.3
