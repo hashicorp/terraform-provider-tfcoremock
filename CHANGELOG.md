@@ -1,4 +1,4 @@
-## v0.2.1 (26 Aug 2024)
+## v0.3.0 (26 Aug 2024)
 
 ENHANCEMENTS:
 
