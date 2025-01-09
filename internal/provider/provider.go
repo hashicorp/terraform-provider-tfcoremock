@@ -10,6 +10,8 @@ import (
 	"strings"
 
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
+	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	provider_schema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
@@ -71,12 +73,22 @@ type tfcoremockProvider struct {
 	// client is provided to the actual resources so that their states can be
 	// recorded and written to a backend other than the terraform state.
 	client client.Client
+
+	failOnCreate []string
+	failOnUpdate []string
+	failOnRead   []string
+	failOnDelete []string
 }
 
 type providerData struct {
 	ResourceDirectory types.String `tfsdk:"resource_directory"`
 	DataDirectory     types.String `tfsdk:"data_directory"`
 	UseOnlyState      types.Bool   `tfsdk:"use_only_state"`
+
+	FailOnCreate types.List `tfsdk:"fail_on_create"`
+	FailOnUpdate types.List `tfsdk:"fail_on_update"`
+	FailOnRead   types.List `tfsdk:"fail_on_read"`
+	FailOnDelete types.List `tfsdk:"fail_on_delete"`
 }
 
 func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.ConfigureRequest, response *provider.ConfigureResponse) {
@@ -112,6 +124,54 @@ func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.Con
 			DataDirectory:     dataDirectory,
 		}
 	}
+
+	failOnDelete, failOnDeleteDiags := parseStringList(ctx, data.FailOnDelete, "fail_on_delete")
+	failOnCreate, failOnCreateDiags := parseStringList(ctx, data.FailOnCreate, "fail_on_create")
+	failOnRead, failOnReadDiags := parseStringList(ctx, data.FailOnRead, "fail_on_read")
+	failOnUpdate, failOnUpdateDiags := parseStringList(ctx, data.FailOnUpdate, "fail_on_update")
+
+	response.Diagnostics.Append(failOnDeleteDiags...)
+	response.Diagnostics.Append(failOnCreateDiags...)
+	response.Diagnostics.Append(failOnReadDiags...)
+	response.Diagnostics.Append(failOnUpdateDiags...)
+
+	m.failOnDelete = failOnDelete
+	m.failOnCreate = failOnCreate
+	m.failOnRead = failOnRead
+	m.failOnUpdate = failOnUpdate
+}
+
+func parseStringList(ctx context.Context, value types.List, attr string) ([]string, diag.Diagnostics) {
+	var diags diag.Diagnostics
+
+	if value.IsNull() {
+		return nil, diags
+	}
+
+	if value.IsUnknown() {
+		diags.Append(diag.NewAttributeErrorDiagnostic(path.Root(attr), "value is unknown", "unknown values are not permitted"))
+		return nil, diags
+	}
+
+	var types []types.String
+	diags.Append(value.ElementsAs(ctx, &types, false)...)
+
+	var elements []string
+	for ix, element := range types {
+		if element.IsNull() {
+			diags.Append(diag.NewAttributeErrorDiagnostic(path.Root(attr).AtListIndex(ix), "element is null", "null values are not permitted"))
+			continue
+		}
+
+		if element.IsUnknown() {
+			diags.Append(diag.NewAttributeErrorDiagnostic(path.Root(attr).AtListIndex(ix), "element is null", "null values are not permitted"))
+			continue
+		}
+
+		elements = append(elements, element.ValueString())
+	}
+
+	return elements, diags
 }
 
 func (m *tfcoremockProvider) Metadata(ctx context.Context, request provider.MetadataRequest, response *provider.MetadataResponse) {
@@ -126,6 +186,10 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 				Name:           "tfcoremock_complex_resource",
 				InternalSchema: complex.Schema(3),
 				Client:         m.client,
+				FailOnDelete:   m.failOnDelete,
+				FailOnCreate:   m.failOnCreate,
+				FailOnRead:     m.failOnRead,
+				FailOnUpdate:   m.failOnUpdate,
 			}
 		},
 		func() tfresource.Resource {
@@ -133,6 +197,10 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 				Name:           "tfcoremock_simple_resource",
 				InternalSchema: simple.Schema,
 				Client:         m.client,
+				FailOnDelete:   m.failOnDelete,
+				FailOnCreate:   m.failOnCreate,
+				FailOnRead:     m.failOnRead,
+				FailOnUpdate:   m.failOnUpdate,
 			}
 		},
 	}
@@ -162,6 +230,10 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 				Name:           resourceName,
 				InternalSchema: resourceSchema,
 				Client:         m.client,
+				FailOnDelete:   m.failOnDelete,
+				FailOnCreate:   m.failOnCreate,
+				FailOnRead:     m.failOnRead,
+				FailOnUpdate:   m.failOnUpdate,
 			}
 		})
 	}
@@ -238,6 +310,30 @@ func (m *tfcoremockProvider) Schema(ctx context.Context, request provider.Schema
 				Description:         "If set to true the provider will rely only on the Terraform state file to load managed resources and will not write anything to disk. Defaults to `false`.",
 				MarkdownDescription: "If set to true the provider will rely only on the Terraform state file to load managed resources and will not write anything to disk. Defaults to `false`.",
 				Optional:            true,
+			},
+			"fail_on_create": provider_schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Description:         "If set, any resources with an ID in this list will fail during the create phase.",
+				MarkdownDescription: "If set, any resources with an ID in this list will fail during the create phase.",
+			},
+			"fail_on_update": provider_schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Description:         "If set, any resources with an ID in this list will fail during the update phase.",
+				MarkdownDescription: "If set, any resources with an ID in this list will fail during the update phase.",
+			},
+			"fail_on_read": provider_schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Description:         "If set, any resources with an ID in this list will fail during the read phase.",
+				MarkdownDescription: "If set, any resources with an ID in this list will fail during the read phase.",
+			},
+			"fail_on_delete": provider_schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Description:         "If set, any resources with an ID in this list will fail during the delete phase.",
+				MarkdownDescription: "If set, any resources with an ID in this list will fail during the delete phase.",
 			},
 		},
 	}
