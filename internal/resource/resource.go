@@ -7,6 +7,7 @@ import (
 	"context"
 	"fmt"
 	"os"
+	"slices"
 
 	"github.com/hashicorp/go-uuid"
 
@@ -34,15 +35,6 @@ type Resource struct {
 	FailOnCreate []string
 	FailOnRead   []string
 	FailOnUpdate []string
-}
-
-func contains(collection []string, target string) bool {
-	for _, item := range collection {
-		if item == target {
-			return true
-		}
-	}
-	return false
 }
 
 func (r Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
@@ -81,7 +73,7 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 		return
 	}
 
-	if contains(r.FailOnCreate, resource.GetId()) {
+	if slices.Contains(r.FailOnCreate, resource.GetId()) {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to create resource", "forced failure"))
 	}
 
@@ -101,7 +93,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 		return
 	}
 
-	if contains(r.FailOnRead, resource.GetId()) {
+	if slices.Contains(r.FailOnRead, resource.GetId()) {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to read resource", "forced failure"))
 	}
 
@@ -141,7 +133,7 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 		return
 	}
 
-	if contains(r.FailOnUpdate, resource.GetId()) {
+	if slices.Contains(r.FailOnUpdate, resource.GetId()) {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to update resource", "forced failure"))
 	}
 
@@ -160,7 +152,7 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 		return
 	}
 
-	if contains(r.FailOnDelete, resource.GetId()) {
+	if slices.Contains(r.FailOnDelete, resource.GetId()) {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to delete resource", "forced failure"))
 	}
 
