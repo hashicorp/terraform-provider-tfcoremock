@@ -6,6 +6,7 @@ package provider
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"testing"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
@@ -387,6 +388,69 @@ func TestAccSimpleResourceWithDependsOn(t *testing.T) {
 				Check: resource.ComposeAggregateTestCheckFunc(
 					resource.TestCheckResourceAttr("tfcoremock_simple_resource.example_one", "string", "resource_module1"),
 					resource.TestCheckResourceAttr("tfcoremock_simple_resource.example_two", "string", "data")),
+			},
+		},
+	})
+}
+
+func TestAccSimpleResourceFailsOnRead(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(""),
+		Steps: []resource.TestStep{
+			{
+				Config:      LoadFile(t, "testdata/fail_on/read/main.tf"),
+				ExpectError: regexp.MustCompile("forced failure"),
+			},
+		},
+	})
+}
+
+func TestAccSimpleResourceFailsOnUpdate(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(""),
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/fail_on/update/create.tf"),
+			},
+			{
+				Config:      LoadFile(t, "testdata/fail_on/update/update.tf"),
+				ExpectError: regexp.MustCompile("forced failure"),
+			},
+		},
+	})
+}
+
+func TestAccSimpleResourceFailsOnCreate(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(""),
+		Steps: []resource.TestStep{
+			{
+				Config:      LoadFile(t, "testdata/fail_on/create/main.tf"),
+				ExpectError: regexp.MustCompile("forced failure"),
+			},
+		},
+	})
+}
+
+func TestAccSimpleResourceFailsOnDelete(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(""),
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/fail_on/delete/create.tf"),
+			},
+			{
+				Config:      LoadFile(t, "testdata/fail_on/delete/delete.tf"),
+				ExpectError: regexp.MustCompile("forced failure"),
+			},
+			{
+				// We need to update the provider configuration to remove the
+				// failing resource so that the test can complete.
+				Config: LoadFile(t, "testdata/simple/delete/main.tf"),
 			},
 		},
 	})

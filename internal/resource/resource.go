@@ -6,8 +6,10 @@ package resource
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/go-uuid"
 	"os"
+	"slices"
+
+	"github.com/hashicorp/go-uuid"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -28,6 +30,11 @@ type Resource struct {
 	Name           string
 	InternalSchema schema.Schema
 	Client         client.Client
+
+	FailOnDelete []string
+	FailOnCreate []string
+	FailOnRead   []string
+	FailOnUpdate []string
 }
 
 func (r Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
@@ -66,6 +73,10 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 		return
 	}
 
+	if slices.Contains(r.FailOnCreate, resource.GetId()) {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to create resource", "forced failure"))
+	}
+
 	if err := r.Client.WriteResource(ctx, resource); err != nil {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to write resource", err.Error()))
 		return
@@ -80,6 +91,10 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 	response.Diagnostics.Append(request.State.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {
 		return
+	}
+
+	if slices.Contains(r.FailOnRead, resource.GetId()) {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to read resource", "forced failure"))
 	}
 
 	data, err := r.Client.ReadResource(ctx, resource.GetId())
@@ -118,6 +133,10 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 		return
 	}
 
+	if slices.Contains(r.FailOnUpdate, resource.GetId()) {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to update resource", "forced failure"))
+	}
+
 	if err := r.Client.UpdateResource(ctx, resource); err != nil {
 		response.Diagnostics.AddError("failed to update resource", err.Error())
 		return
@@ -131,6 +150,10 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 	response.Diagnostics.Append(request.State.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {
 		return
+	}
+
+	if slices.Contains(r.FailOnDelete, resource.GetId()) {
+		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to delete resource", "forced failure"))
 	}
 
 	if err := r.Client.DeleteResource(ctx, resource.GetId()); err != nil {

@@ -45,5 +45,9 @@ provider "tfcoremock" {
 ### Optional
 
 - `data_directory` (String) The directory that the provider should use to read the human-readable JSON files for each requested data source. Defaults to `data.resource`.
+- `fail_on_create` (List of String) If set, any resources with an ID in this list will fail during the create phase.
+- `fail_on_delete` (List of String) If set, any resources with an ID in this list will fail during the delete phase.
+- `fail_on_read` (List of String) If set, any resources with an ID in this list will fail during the read phase.
+- `fail_on_update` (List of String) If set, any resources with an ID in this list will fail during the update phase.
 - `resource_directory` (String) The directory that the provider should use to write the human-readable JSON files for each managed resource. If `use_only_state` is set to `true` then this value does not matter. Defaults to `terraform.resource`.
 - `use_only_state` (Boolean) If set to true the provider will rely only on the Terraform state file to load managed resources and will not write anything to disk. Defaults to `false`.
