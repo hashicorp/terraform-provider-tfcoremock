@@ -1,3 +1,9 @@
+## v0.4.0 (9 Jan 2025)
+
+ENHANCEMENTS:
+
+* Introduce `fail_on_create`, `fail_on_delete`, `fail_on_read`, `fail_on_update` attributes to the provider configuration. This allows controlling if resources should fail during certain operations. ([#154](https://github.com/hashicorp/terraform-provider-tfcoremock/pull/154))
+
 ## v0.3.0 (26 Aug 2024)
 
 ENHANCEMENTS:
