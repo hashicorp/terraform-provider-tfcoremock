@@ -1,3 +1,9 @@
+## v0.5.0 (15 Apr 2025)
+
+NOTES:
+
+* Update dependencies.
+
 ## v0.4.0 (9 Jan 2025)
 
 ENHANCEMENTS:
