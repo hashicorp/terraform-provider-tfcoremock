@@ -2,8 +2,6 @@ module github.com/hashicorp/terraform-provider-tfcoremock
 
 go 1.24.1
 
-toolchain go1.24.1
-
 require (
 	github.com/hashicorp/go-uuid v1.0.3
 	github.com/hashicorp/terraform-plugin-docs v0.21.0
