@@ -1,11 +1,17 @@
-## PCI review checklist
+## Description
+
+<!--
+
+Describe the changes you are proposing, and the rationale, for the benefit of your reviewer.
+
+-->
 
 <!-- heimdall_github_prtemplate:grc-pci_dss-2024-01-05 -->
+## Rollback Plan
 
-- [ ] I have documented a clear reason for, and description of, the change I am making.
+- [ ] If a change needs to be reverted, we will roll out an update to the code within 7 days.
 
-- [ ] If applicable, I've documented a plan to revert these changes if they require more than reverting the pull request.
+## Changes to Security Controls
 
-- [ ] If applicable, I've documented the impact of any changes to security controls.
+Are there any changes to security controls (access controls, encryption, logging) in this pull request? If so, explain.
 
-  Examples of changes to security controls include using new access control methods, adding or removing logging pipelines, etc.
