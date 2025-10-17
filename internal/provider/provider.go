@@ -78,6 +78,7 @@ type tfcoremockProvider struct {
 	failOnUpdate []string
 	failOnRead   []string
 	failOnDelete []string
+	deferChanges []string
 }
 
 type providerData struct {
@@ -89,6 +90,8 @@ type providerData struct {
 	FailOnUpdate types.List `tfsdk:"fail_on_update"`
 	FailOnRead   types.List `tfsdk:"fail_on_read"`
 	FailOnDelete types.List `tfsdk:"fail_on_delete"`
+
+	DeferChanges types.List `tfsdk:"defer_changes"`
 }
 
 func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.ConfigureRequest, response *provider.ConfigureResponse) {
@@ -129,16 +132,19 @@ func (m *tfcoremockProvider) Configure(ctx context.Context, request provider.Con
 	failOnCreate, failOnCreateDiags := parseStringList(ctx, data.FailOnCreate, "fail_on_create")
 	failOnRead, failOnReadDiags := parseStringList(ctx, data.FailOnRead, "fail_on_read")
 	failOnUpdate, failOnUpdateDiags := parseStringList(ctx, data.FailOnUpdate, "fail_on_update")
+	deferChanges, deferChangesDiags := parseStringList(ctx, data.DeferChanges, "defer_changes")
 
 	response.Diagnostics.Append(failOnDeleteDiags...)
 	response.Diagnostics.Append(failOnCreateDiags...)
 	response.Diagnostics.Append(failOnReadDiags...)
 	response.Diagnostics.Append(failOnUpdateDiags...)
+	response.Diagnostics.Append(deferChangesDiags...)
 
 	m.failOnDelete = failOnDelete
 	m.failOnCreate = failOnCreate
 	m.failOnRead = failOnRead
 	m.failOnUpdate = failOnUpdate
+	m.deferChanges = deferChanges
 }
 
 func parseStringList(ctx context.Context, value types.List, attr string) ([]string, diag.Diagnostics) {
@@ -190,6 +196,7 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 				FailOnCreate:   m.failOnCreate,
 				FailOnRead:     m.failOnRead,
 				FailOnUpdate:   m.failOnUpdate,
+				DeferChanges:   m.deferChanges,
 			}
 		},
 		func() tfresource.Resource {
@@ -201,6 +208,7 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 				FailOnCreate:   m.failOnCreate,
 				FailOnRead:     m.failOnRead,
 				FailOnUpdate:   m.failOnUpdate,
+				DeferChanges:   m.deferChanges,
 			}
 		},
 	}
@@ -234,6 +242,7 @@ func (m *tfcoremockProvider) Resources(ctx context.Context) []func() tfresource.
 				FailOnCreate:   m.failOnCreate,
 				FailOnRead:     m.failOnRead,
 				FailOnUpdate:   m.failOnUpdate,
+				DeferChanges:   m.deferChanges,
 			}
 		})
 	}
@@ -334,6 +343,12 @@ func (m *tfcoremockProvider) Schema(ctx context.Context, request provider.Schema
 				Optional:            true,
 				Description:         "If set, any resources with an ID in this list will fail during the delete phase.",
 				MarkdownDescription: "If set, any resources with an ID in this list will fail during the delete phase.",
+			},
+			"defer_changes": provider_schema.ListAttribute{
+				ElementType:         types.StringType,
+				Optional:            true,
+				Description:         "If set, any resources with an ID in this list will have any changes deferred during the plan phase.",
+				MarkdownDescription: "If set, any resources with an ID in this list will have any changes deferred during the plan phase.",
 			},
 		},
 	}

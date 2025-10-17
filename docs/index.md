@@ -44,6 +44,7 @@ provider "tfcoremock" {
 ### Optional
 
 - `data_directory` (String) The directory that the provider should use to read the human-readable JSON files for each requested data source. Defaults to `data.resource`.
+- `defer_changes` (List of String) If set, any resources with an ID in this list will have any changes deferred during the plan phase.
 - `fail_on_create` (List of String) If set, any resources with an ID in this list will fail during the create phase.
 - `fail_on_delete` (List of String) If set, any resources with an ID in this list will fail during the delete phase.
 - `fail_on_read` (List of String) If set, any resources with an ID in this list will fail during the read phase.
