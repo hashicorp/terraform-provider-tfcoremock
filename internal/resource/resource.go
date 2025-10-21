@@ -25,6 +25,7 @@ import (
 
 var _ resource.Resource = Resource{}
 var _ resource.ResourceWithImportState = Resource{}
+var _ resource.ResourceWithModifyPlan = Resource{}
 
 type Resource struct {
 	Name           string
@@ -35,6 +36,7 @@ type Resource struct {
 	FailOnCreate []string
 	FailOnRead   []string
 	FailOnUpdate []string
+	DeferChanges []string
 }
 
 func (r Resource) Metadata(ctx context.Context, request resource.MetadataRequest, response *resource.MetadataResponse) {
@@ -163,4 +165,33 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 
 func (r Resource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
 	resource.ImportStatePassthroughID(ctx, path.Root("id"), request, response)
+}
+
+func (r Resource) ModifyPlan(ctx context.Context, request resource.ModifyPlanRequest, response *resource.ModifyPlanResponse) {
+	res := &data.Resource{}
+	response.Diagnostics.Append(request.Plan.Get(ctx, &res)...)
+	if response.Diagnostics.HasError() {
+		return
+	}
+
+	if _, ok := res.Values["id"]; !ok {
+		// then resource is unknown or something, which means we can't check
+		// it
+		return
+	}
+
+	id := res.GetId()
+	if slices.Contains(r.DeferChanges, id) {
+		// Then we want to defer this change!
+
+		if !request.ClientCapabilities.DeferralAllowed {
+			response.Diagnostics.AddAttributeError(path.Root("id"), "Invalid resource deferral", "This `id` was marked as \"should be deferred\", but the current version of Terraform does not support deferrals.")
+			return
+		}
+
+		response.Deferred = &resource.Deferred{
+			// not technically true, but the closest we have
+			Reason: resource.DeferredReasonResourceConfigUnknown,
+		}
+	}
 }

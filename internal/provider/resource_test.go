@@ -4,6 +4,7 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -11,6 +12,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/terraform"
+	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
 
 func TestAccComplexResource(t *testing.T) {
@@ -451,6 +453,35 @@ func TestAccSimpleResourceFailsOnDelete(t *testing.T) {
 				// We need to update the provider configuration to remove the
 				// failing resource so that the test can complete.
 				Config: LoadFile(t, "testdata/simple/delete/main.tf"),
+			},
+		},
+	})
+}
+
+func TestAccSimpleResourceDefers(t *testing.T) {
+	t.Cleanup(CleanupTestingDirectories(t))
+	resource.Test(t, resource.TestCase{
+		ProtoV6ProviderFactories: ProviderFactories(""),
+		TerraformVersionChecks: []tfversion.TerraformVersionCheck{
+			tfversion.SkipIfNotAlpha(), // deferrals only supported in alpha
+		},
+		AdditionalCLIOptions: &resource.AdditionalCLIOptions{
+			Apply: resource.ApplyOptions{
+				AllowDeferral: true,
+			},
+			Plan: resource.PlanOptions{
+				AllowDeferral: true,
+			},
+		},
+		Steps: []resource.TestStep{
+			{
+				Config: LoadFile(t, "testdata/deferral/main.tf"),
+				Check: func(state *terraform.State) error {
+					if len(state.Modules[0].Resources) > 0 {
+						return errors.New("expected no resources to be created")
+					}
+					return nil
+				},
 			},
 		},
 	})
