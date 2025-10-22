@@ -10,6 +10,7 @@ import (
 	"slices"
 
 	"github.com/hashicorp/go-uuid"
+	"github.com/hashicorp/terraform-plugin-framework/resource/identityschema"
 
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/path"
@@ -24,6 +25,7 @@ import (
 )
 
 var _ resource.Resource = Resource{}
+var _ resource.ResourceWithIdentity = Resource{}
 var _ resource.ResourceWithImportState = Resource{}
 var _ resource.ResourceWithModifyPlan = Resource{}
 
@@ -47,6 +49,17 @@ func (r Resource) Schema(ctx context.Context, request resource.SchemaRequest, re
 	var err error
 	if response.Schema, err = r.InternalSchema.ToTerraformResourceSchema(); err != nil {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic(fmt.Sprintf("failed to build resource schema for '%s'", r.Name), err.Error()))
+	}
+}
+
+func (r Resource) IdentitySchema(ctx context.Context, request resource.IdentitySchemaRequest, response *resource.IdentitySchemaResponse) {
+	response.IdentitySchema = identityschema.Schema{
+		Attributes: map[string]identityschema.Attribute{
+			"id": identityschema.StringAttribute{
+				RequiredForImport: true,
+				Description:       "The ID of the resource.",
+			},
+		},
 	}
 }
 
@@ -77,6 +90,7 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 
 	if slices.Contains(r.FailOnCreate, resource.GetId()) {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to create resource", "forced failure"))
+		return
 	}
 
 	if err := r.Client.WriteResource(ctx, resource); err != nil {
@@ -84,8 +98,8 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 		return
 	}
 
-	diags := response.State.Set(ctx, resource)
-	response.Diagnostics.Append(diags...)
+	response.Diagnostics.Append(response.State.Set(ctx, resource)...)
+	response.Diagnostics.Append(response.Identity.Set(ctx, resource.Identity())...)
 }
 
 func (r Resource) Read(ctx context.Context, request resource.ReadRequest, response *resource.ReadResponse) {
@@ -97,6 +111,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 
 	if slices.Contains(r.FailOnRead, resource.GetId()) {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to read resource", "forced failure"))
+		return
 	}
 
 	data, err := r.Client.ReadResource(ctx, resource.GetId())
@@ -106,6 +121,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 			// that doesn't exist but Terraform thinks it does. We treat this
 			// as "drift" and let the Terraform framework handle it.
 			response.State.RemoveResource(ctx)
+			response.Diagnostics.Append(response.Identity.Set(ctx, resource.Identity())...)
 			return
 		}
 		response.Diagnostics.AddError("failed to read resource", err.Error())
@@ -120,6 +136,7 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 
 	typ := request.State.Schema.Type().TerraformType(ctx)
 	response.Diagnostics.Append(response.State.Set(ctx, data.WithType(typ.(tftypes.Object)))...)
+	response.Diagnostics.Append(response.Identity.Set(ctx, data.Identity())...)
 }
 
 func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
@@ -137,6 +154,7 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 
 	if slices.Contains(r.FailOnUpdate, resource.GetId()) {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to update resource", "forced failure"))
+		return
 	}
 
 	if err := r.Client.UpdateResource(ctx, resource); err != nil {
@@ -145,6 +163,7 @@ func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, re
 	}
 
 	response.Diagnostics.Append(response.State.Set(ctx, resource)...)
+	response.Diagnostics.Append(response.Identity.Set(ctx, resource.Identity())...)
 }
 
 func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, response *resource.DeleteResponse) {
@@ -156,11 +175,16 @@ func (r Resource) Delete(ctx context.Context, request resource.DeleteRequest, re
 
 	if slices.Contains(r.FailOnDelete, resource.GetId()) {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to delete resource", "forced failure"))
+		return
 	}
 
 	if err := r.Client.DeleteResource(ctx, resource.GetId()); err != nil {
 		response.Diagnostics.AddError("failed to delete resource", err.Error())
+		return
 	}
+
+	response.State.RemoveResource(ctx)
+	response.Diagnostics.Append(response.Identity.Set(ctx, resource.Identity())...)
 }
 
 func (r Resource) ImportState(ctx context.Context, request resource.ImportStateRequest, response *resource.ImportStateResponse) {
