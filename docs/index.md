@@ -8,7 +8,8 @@ description: |-
   Users can then define additional dynamic resources by supplying a dynamic_resources.json file alongside their root Terraform configuration. These dynamic resources can be used to model any Terraform configuration not covered by the provided static resources.
   By default, all resources created by the provider are then converted into a human-readable JSON format and written out to the resource directory. This behaviour can be disabled by turning on the use_only_state flag in the provider schema (this is useful when running the provider in a Terraform Cloud environment). The resource directory defaults to terraform.resource.
   All resources supplied by the provider (including the simple and complex resource as well as any dynamic resources) are duplicated into data sources. The data sources should be supplied in the JSON format that resources are written into. The provider looks into the data directory, which defaults to terraform.data.
-  Finally, all resources (and data sources) supplied by the provider have an id attribute that is generated if not set by the configuration. Dynamic resources cannot define an id attribute as the provider will create one for them. The id attribute is used as name of the human-readable JSON files held in the resource and data directories.
+  All resources (and data sources) supplied by the provider have an id attribute that is generated if not set by the configuration. Dynamic resources cannot define an id attribute as the provider will create one for them. The id attribute is used as name of the human-readable JSON files held in the resource and data directories.
+  Additionally, all resources are available to be queries via list blocks. For now only the id attribute is supported as a field to retrieve a specific instance. It is optional, so all resources of the specified type will be returned if the field is left blank.
 ---
 
 # tfcoremock Provider
@@ -26,7 +27,9 @@ By default, all resources created by the provider are then converted into a huma
 
 All resources supplied by the provider (including the simple and complex resource as well as any dynamic resources) are duplicated into data sources. The data sources should be supplied in the JSON format that resources are written into. The provider looks into the data directory, which defaults to `terraform.data`.
 
-Finally, all resources (and data sources) supplied by the provider have an `id` attribute that is generated if not set by the configuration. Dynamic resources cannot define an `id` attribute as the provider will create one for them. The `id` attribute is used as name of the human-readable JSON files held in the resource and data directories.
+All resources (and data sources) supplied by the provider have an `id` attribute that is generated if not set by the configuration. Dynamic resources cannot define an `id` attribute as the provider will create one for them. The `id` attribute is used as name of the human-readable JSON files held in the resource and data directories.
+
+Additionally, all resources are available to be queries via `list` blocks. For now only the `id` attribute is supported as a field to retrieve a specific instance. It is optional, so all resources of the specified type will be returned if the field is left blank.
 
 ## Example Usage
 
