@@ -2,6 +2,7 @@
 
 ENHANCEMENTS:
 
+* Add support for listing all resources. ([#193](https://github.com/hashicorp/terraform-provider-tfcoremock/pull/193))
 * Introduce `defer_changes` attributes to the provider configuration. This allows controlling if resources should defer there changes during the current operation. ([#190](https://github.com/hashicorp/terraform-provider-tfcoremock/pull/190))
 
 ## v0.5.0 (15 Apr 2025)

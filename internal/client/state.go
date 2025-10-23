@@ -54,3 +54,7 @@ func (state State) ReadDataSource(ctx context.Context, id string) (*data.Resourc
 
 	return &value, nil
 }
+
+func (state State) ListResources(ctx context.Context, typeName *string, id *string, yield func(resource *data.Resource, err error), limit int64) error {
+	return nil
+}

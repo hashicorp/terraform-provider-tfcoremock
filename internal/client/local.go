@@ -10,7 +10,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path"
+	"path/filepath"
 
 	"github.com/hashicorp/terraform-plugin-log/tflog"
 
@@ -27,7 +27,7 @@ type Local struct {
 func (local Local) ReadResource(ctx context.Context, id string) (*data.Resource, error) {
 	tflog.Trace(ctx, "Local.ReadResource")
 
-	jsonPath := path.Join(local.ResourceDirectory, fmt.Sprintf("%s.json", id))
+	jsonPath := filepath.Join(local.ResourceDirectory, fmt.Sprintf("%s.json", id))
 
 	jsonData, err := os.ReadFile(jsonPath)
 	if err != nil {
@@ -54,7 +54,7 @@ func (local Local) WriteResource(ctx context.Context, value *data.Resource) erro
 		return err
 	}
 
-	jsonPath := path.Join(local.ResourceDirectory, fmt.Sprintf("%s.json", value.GetId()))
+	jsonPath := filepath.Join(local.ResourceDirectory, fmt.Sprintf("%s.json", value.GetId()))
 
 	// Let's just do a quick sanity check here. We are expecting the stat to
 	// return an os.IsNotExist error, we want to make sure we aren't trying to
@@ -81,7 +81,7 @@ func (local Local) UpdateResource(ctx context.Context, value *data.Resource) err
 		return err
 	}
 
-	jsonPath := path.Join(local.ResourceDirectory, fmt.Sprintf("%s.json", value.GetId()))
+	jsonPath := filepath.Join(local.ResourceDirectory, fmt.Sprintf("%s.json", value.GetId()))
 	if _, err := os.Stat(jsonPath); err != nil {
 		return err
 	}
@@ -94,7 +94,7 @@ func (local Local) UpdateResource(ctx context.Context, value *data.Resource) err
 }
 
 func (local Local) DeleteResource(ctx context.Context, id string) error {
-	jsonPath := path.Join(local.ResourceDirectory, fmt.Sprintf("%s.json", id))
+	jsonPath := filepath.Join(local.ResourceDirectory, fmt.Sprintf("%s.json", id))
 	if err := os.Remove(jsonPath); err != nil {
 		return err
 	}
@@ -131,7 +131,7 @@ func (local Local) DeleteResource(ctx context.Context, id string) error {
 }
 
 func (local Local) ReadDataSource(ctx context.Context, id string) (*data.Resource, error) {
-	jsonPath := path.Join(local.DataDirectory, fmt.Sprintf("%s.json", id))
+	jsonPath := filepath.Join(local.DataDirectory, fmt.Sprintf("%s.json", id))
 
 	jsonData, err := os.ReadFile(jsonPath)
 	if err != nil {
@@ -144,4 +144,55 @@ func (local Local) ReadDataSource(ctx context.Context, id string) (*data.Resourc
 	}
 
 	return &value, nil
+}
+
+func (local Local) ListResources(ctx context.Context, typeName *string, id *string, yield func(resource *data.Resource, err error), limit int64) error {
+	if id != nil {
+		yield(local.ReadResource(ctx, *id))
+		return nil
+	}
+
+	entries, err := os.ReadDir(local.ResourceDirectory)
+	if err != nil {
+		return err
+	}
+
+	var count int64
+	for _, entry := range entries {
+		if count == limit {
+			break // only yield the exact number of responses
+		}
+
+		if entry.IsDir() {
+			continue // no nested directories
+		}
+
+		ext := filepath.Ext(entry.Name())
+		if ext != ".json" {
+			continue // only read the json files
+		}
+
+		jsonData, err := os.ReadFile(filepath.Join(local.ResourceDirectory, entry.Name()))
+		if err != nil {
+			count++
+			yield(nil, fmt.Errorf("failed to read %s: %w", entry.Name(), err))
+			continue
+		}
+
+		var value data.Resource
+		if err := json.Unmarshal(jsonData, &value); err != nil {
+			count++
+			yield(nil, fmt.Errorf("failed to unmarshal %s: %w", entry.Name(), err))
+			continue
+		}
+
+		if typeName != nil && value.ResourceType != *typeName {
+			continue // wrong type
+		}
+
+		count++
+		yield(&value, nil)
+	}
+
+	return nil
 }

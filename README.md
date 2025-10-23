@@ -33,11 +33,16 @@ sources. The data sources should be supplied in the JSON format that resources
 are written into. The provider looks into the data directory, which defaults to
 `terraform.data`.
 
-Finally, all resources (and data sources) supplied by the provider have an `id` 
+All resources (and data sources) supplied by the provider have an `id` 
 attribute that is generated if not set by the configuration. Dynamic resources 
 cannot define an `id` attribute as the provider will create one for them. The 
 `id` attribute is used as name of the human-readable JSON files held in the
 resource and data directories.
+
+Additionally, all resources are available to be queries via `list` blocks. For
+now only the `id` attribute is supported as a field to retrieve a specific 
+instance. It is optional, so all resources of the specified type will be 
+returned if the field is left blank.
 
 ## Requirements
 

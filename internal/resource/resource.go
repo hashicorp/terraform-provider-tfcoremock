@@ -69,6 +69,7 @@ func (r Resource) Create(ctx context.Context, request resource.CreateRequest, re
 	if response.Diagnostics.HasError() {
 		return
 	}
+	resource.ResourceType = r.Name
 
 	// The root ID is a special computed value.
 	if _, ok := resource.Values["id"]; !ok {
@@ -141,11 +142,11 @@ func (r Resource) Read(ctx context.Context, request resource.ReadRequest, respon
 
 func (r Resource) Update(ctx context.Context, request resource.UpdateRequest, response *resource.UpdateResponse) {
 	resource := &data.Resource{}
-
 	response.Diagnostics.Append(request.Plan.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {
 		return
 	}
+	resource.ResourceType = r.Name
 
 	if err := computed.GenerateComputedValues(resource, r.InternalSchema); err != nil {
 		response.Diagnostics.Append(diag.NewErrorDiagnostic("failed to generate computed values", err.Error()))
