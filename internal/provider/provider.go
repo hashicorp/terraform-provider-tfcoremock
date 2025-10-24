@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/action"
 	"github.com/hashicorp/terraform-plugin-framework/datasource"
 	"github.com/hashicorp/terraform-plugin-framework/diag"
+	"github.com/hashicorp/terraform-plugin-framework/list"
 	"github.com/hashicorp/terraform-plugin-framework/path"
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	provider_schema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
@@ -27,6 +28,7 @@ import (
 
 var _ provider.Provider = &tfcoremockProvider{}
 var _ provider.ProviderWithActions = &tfcoremockProvider{}
+var _ provider.ProviderWithListResources = &tfcoremockProvider{}
 
 const (
 	description = `The 'tfcoremock' provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
@@ -42,7 +44,9 @@ By default, all resources created by the provider are then converted into a huma
 
 All resources supplied by the provider (including the simple and complex resource as well as any dynamic resources) are duplicated into data sources. The data sources should be supplied in the JSON format that resources are written into. The provider looks into the data directory, which defaults to 'terraform.data'.
 
-All resources (and data sources) supplied by the provider have an 'id' attribute that is generated if not set by the configuration. Dynamic resources cannot define an 'id' attribute as the provider will create one for them. The 'id' attribute is used as name of the human-readable JSON files held in the resource and data directories.
+All resources (and data sources) supplied by the provider have an 'id' attribute that is generated if not set by the configuration. Dynamic resources cannot define an 'id' attribute as the provider will create one for them. The 'id' attribute is used as the name of the human-readable JSON files held in the resource and data directories.
+
+Additionally, all resources are available to be queried via 'list' blocks. For now only the 'id' attribute is supported as a field to retrieve a specific instance. It is optional, so all resources of the specified type will be returned if the field is left blank.
 
 The provider also supports actions (introduced in Terraform v1.14). All resources (both static and dynamic) are made available as action blocks, that can be plugged into any Terraform configuration. Unlike resources and data sources, actions have no 'id' associated with them as they are not written to disk.`
 
@@ -59,7 +63,9 @@ By default, all resources created by the provider are then converted into a huma
 
 All resources supplied by the provider (including the simple and complex resource as well as any dynamic resources) are duplicated into data sources. The data sources should be supplied in the JSON format that resources are written into. The provider looks into the data directory, which defaults to ''terraform.data''.
 
-All resources (and data sources) supplied by the provider have an ''id'' attribute that is generated if not set by the configuration. Dynamic resources cannot define an ''id'' attribute as the provider will create one for them. The ''id'' attribute is used as name of the human-readable JSON files held in the resource and data directories.
+All resources (and data sources) supplied by the provider have an ''id'' attribute that is generated if not set by the configuration. Dynamic resources cannot define an ''id'' attribute as the provider will create one for them. The ''id'' attribute is used as the name of the human-readable JSON files held in the resource and data directories.
+
+Additionally, all resources are available to be queried via ''list'' blocks. For now only the ''id'' attribute is supported as a field to retrieve a specific instance. It is optional, so all resources of the specified type will be returned if the field is left blank.
 
 The provider also supports actions (introduced in Terraform v1.14). All resources (both static and dynamic) are made available as action blocks, that can be plugged into any Terraform configuration. Unlike resources and data sources, actions have no ''id'' associated with them as they are not written to disk.`
 
@@ -351,6 +357,56 @@ func (m *tfcoremockProvider) Actions(ctx context.Context) []func() action.Action
 	}
 
 	return actions
+}
+
+func (m *tfcoremockProvider) ListResources(ctx context.Context) []func() list.ListResource {
+	listResources := []func() list.ListResource{
+		func() list.ListResource {
+			return resource.ListResource{
+				Name:           "tfcoremock_complex_resource",
+				InternalSchema: complex.Schema(3),
+				Client:         m.client,
+			}
+		},
+		func() list.ListResource {
+			return resource.ListResource{
+				Name:           "tfcoremock_simple_resource",
+				InternalSchema: simple.Schema,
+				Client:         m.client,
+			}
+		},
+	}
+
+	schemas, err := m.reader.Read()
+	if err != nil {
+		// This isn't ideal, as the plugin will tell the user this is a problem
+		// with the provider. It's not though, this means the provided dynamic
+		// resources file either wasn't valid JSON or didn't match our schema.
+		//
+		// We don't have a way to raise an error through the plugin at this
+		// point in time though, so the only thing we can really do is panic.
+		//
+		// We add a lot of context to this panic to try and make the caller
+		// realise exactly what the problem is.
+		panic(fmt.Sprintf("The tfcoremock provider either failed to parse or failed to validate your dynamic resources file. "+
+			"Terraform will say this is a problem in the provider, but in this case it is a problem in your dynamic resources file. "+
+			"We have the following error from the parser, hopefully it provides additional context about the problem but these errors are not always helpful."+
+			"\n\n%s\n", err.Error()))
+	}
+
+	for name, schema := range schemas {
+		listResourceName := name
+		listResourceSchema := schema
+		listResources = append(listResources, func() list.ListResource {
+			return resource.ListResource{
+				Name:           listResourceName,
+				InternalSchema: listResourceSchema,
+				Client:         m.client,
+			}
+		})
+	}
+
+	return listResources
 }
 
 func (m *tfcoremockProvider) Schema(ctx context.Context, request provider.SchemaRequest, response *provider.SchemaResponse) {

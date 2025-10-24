@@ -1,0 +1,10 @@
+{
+  "tfcoremock_dynamic_resource": {
+    "attributes": {
+      "value": {
+        "type": "string",
+        "optional": true
+      }
+    }
+  }
+}

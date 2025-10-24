@@ -102,7 +102,7 @@ func ToTerraformAttribute[A any](a Attribute, types *AttributeTypes[A]) (*A, err
 		if !a.SkipNestedMetadata && a.Set.Type == Object {
 			return types.asNestedSet(a)
 		}
-		return types.asNestedSet(a)
+		return types.asSet(a)
 	case Object:
 		if a.SkipNestedMetadata {
 			return types.asObject(a)

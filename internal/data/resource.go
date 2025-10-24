@@ -31,7 +31,8 @@ var _ tftypes.ValueCreator = &Resource{}
 // The types are attached automatically when converting from a Terraform SDK
 // object.
 type Resource struct {
-	Values map[string]Value `json:"values"`
+	ResourceType string           `json:"resource_type"`
+	Values       map[string]Value `json:"values"`
 
 	objectType tftypes.Object
 }

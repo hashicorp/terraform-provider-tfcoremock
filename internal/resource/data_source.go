@@ -36,7 +36,9 @@ func (d DataSource) Schema(ctx context.Context, request datasource.SchemaRequest
 }
 
 func (d DataSource) Read(ctx context.Context, request datasource.ReadRequest, response *datasource.ReadResponse) {
-	resource := &data.Resource{}
+	resource := &data.Resource{
+		ResourceType: d.Name,
+	}
 
 	response.Diagnostics.Append(request.Config.Get(ctx, &resource)...)
 	if response.Diagnostics.HasError() {

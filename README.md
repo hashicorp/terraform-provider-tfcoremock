@@ -39,6 +39,11 @@ cannot define an `id` attribute as the provider will create one for them. The
 `id` attribute is used as name of the human-readable JSON files held in the
 resource and data directories.
 
+Additionally, all resources are available to be queried via `list` blocks. For
+now only the `id` attribute is supported as a field to retrieve a specific 
+instance. It is optional, so all resources of the specified type will be 
+returned if the field is left blank.
+
 The provider also supports actions (introduced in Terraform v1.14). All 
 resources (both static and dynamic) are made available as action blocks, that 
 can be plugged into any Terraform configuration. Unlike resources and data 
