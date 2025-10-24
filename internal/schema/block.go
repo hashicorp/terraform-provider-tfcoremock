@@ -6,6 +6,7 @@ package schema
 import (
 	"fmt"
 
+	action_schema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/pkg/errors"
@@ -133,6 +134,44 @@ func blocksToTerraformDataSourceBlocks(blocks map[string]Block) (map[string]data
 	tfBlocks := make(map[string]datasource_schema.Block)
 	for name, block := range blocks {
 		block, err := ToTerraformBlock(block, toListBlock, toSetBlock, datasources)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to create block '%s'", name)
+		}
+		tfBlocks[name] = *block
+	}
+	return tfBlocks, nil
+}
+
+func blocksToTerraformActionBlocks(blocks map[string]Block) (map[string]action_schema.Block, error) {
+	toListBlock := func(block Block, blocks map[string]action_schema.Block, attributes map[string]action_schema.Attribute) *action_schema.Block {
+		var tfBlock action_schema.Block
+		tfBlock = action_schema.ListNestedBlock{
+			Description:         block.Description,
+			MarkdownDescription: block.MarkdownDescription,
+			NestedObject: action_schema.NestedBlockObject{
+				Attributes: attributes,
+				Blocks:     blocks,
+			},
+		}
+		return &tfBlock
+	}
+
+	toSetBlock := func(block Block, blocks map[string]action_schema.Block, attributes map[string]action_schema.Attribute) *action_schema.Block {
+		var tfBlock action_schema.Block
+		tfBlock = action_schema.SetNestedBlock{
+			Description:         block.Description,
+			MarkdownDescription: block.MarkdownDescription,
+			NestedObject: action_schema.NestedBlockObject{
+				Attributes: attributes,
+				Blocks:     blocks,
+			},
+		}
+		return &tfBlock
+	}
+
+	tfBlocks := make(map[string]action_schema.Block)
+	for name, block := range blocks {
+		block, err := ToTerraformBlock(block, toListBlock, toSetBlock, actions)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to create block '%s'", name)
 		}
