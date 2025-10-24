@@ -43,6 +43,20 @@ func (r Resource) GetId() string {
 	return *r.Values["id"].String
 }
 
+// Identity returns the identity type for this resource.
+func (r Resource) Identity() tftypes.Value {
+
+	t := tftypes.Object{
+		AttributeTypes: map[string]tftypes.Type{
+			"id": tftypes.String,
+		},
+	}
+
+	return tftypes.NewValue(t, map[string]tftypes.Value{
+		"id": tftypes.NewValue(tftypes.String, r.GetId()),
+	})
+}
+
 // WithType adds type information into a Resource as this is not stored as part
 // of our external API.
 //
