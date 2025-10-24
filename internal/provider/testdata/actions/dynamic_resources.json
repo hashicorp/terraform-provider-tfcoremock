@@ -1,0 +1,10 @@
+{
+  "tfcoremock_dynamic_action": {
+    "attributes": {
+      "integer": {
+        "type": "integer",
+        "optional": true
+      }
+    }
+  }
+}
