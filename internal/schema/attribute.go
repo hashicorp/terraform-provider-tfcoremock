@@ -6,6 +6,7 @@ package schema
 import (
 	"fmt"
 
+	action_schema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	"github.com/pkg/errors"
@@ -131,6 +132,18 @@ func attributesToTerraformDataSourceAttributes(attributes map[string]Attribute) 
 	tfAttributes := make(map[string]datasource_schema.Attribute)
 	for name, attribute := range attributes {
 		attribute, err := ToTerraformAttribute(attribute, datasources)
+		if err != nil {
+			return nil, errors.Wrapf(err, "failed to create attribute '%s'", name)
+		}
+		tfAttributes[name] = *attribute
+	}
+	return tfAttributes, nil
+}
+
+func attributesToTerraformActionAttributes(attributes map[string]Attribute) (map[string]action_schema.Attribute, error) {
+	tfAttributes := make(map[string]action_schema.Attribute)
+	for name, attribute := range attributes {
+		attribute, err := ToTerraformAttribute(attribute, actions)
 		if err != nil {
 			return nil, errors.Wrapf(err, "failed to create attribute '%s'", name)
 		}

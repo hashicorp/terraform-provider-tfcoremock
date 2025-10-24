@@ -6,6 +6,7 @@ package schema
 import (
 	"errors"
 
+	action_schema "github.com/hashicorp/terraform-plugin-framework/action/schema"
 	datasource_schema "github.com/hashicorp/terraform-plugin-framework/datasource/schema"
 	resource_schema "github.com/hashicorp/terraform-plugin-framework/resource/schema"
 	resource_schema_planmodifier "github.com/hashicorp/terraform-plugin-framework/resource/schema/planmodifier"
@@ -100,6 +101,28 @@ func (schema Schema) ToTerraformDataSourceSchema() (datasource_schema.Schema, er
 	}
 
 	if out.Blocks, err = blocksToTerraformDataSourceBlocks(schema.Blocks); err != nil {
+		return out, err
+	}
+
+	return out, nil
+}
+
+func (schema Schema) ToTerraformActionSchema() (action_schema.Schema, error) {
+	out := action_schema.Schema{
+		Description:         schema.Description,
+		MarkdownDescription: schema.MarkdownDescription,
+	}
+
+	var err error
+	if err = schema.validateAttributes(); err != nil {
+		return out, err
+	}
+
+	if out.Attributes, err = attributesToTerraformActionAttributes(schema.Attributes); err != nil {
+		return out, err
+	}
+
+	if out.Blocks, err = blocksToTerraformActionBlocks(schema.Blocks); err != nil {
 		return out, err
 	}
 
