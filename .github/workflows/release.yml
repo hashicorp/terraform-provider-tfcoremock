@@ -25,7 +25,7 @@ jobs:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - name: Generate Release Notes
         run: awk -v ver=${RELEASE_VERSION} '/^## / { if (p) { exit }; if ($2 == ver) { p=1; next } } p' CHANGELOG.md > release-notes.txt
-      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4 # v5.0.0
         with:
           name: release-notes
           path: release-notes.txt
@@ -33,7 +33,7 @@ jobs:
   terraform-provider-release:
     name: 'Terraform Provider Release'
     needs: [go-version, release-notes]
-    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@47262d25bac29980a862ac02e13eb82715cbc1f0 # v4.1.0
+    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@5f388ae147bcc1e1c34822571b2f2de40694c5d6 # v5.0.0
     secrets:
       hc-releases-github-token: '${{ secrets.HASHI_RELEASES_GITHUB_TOKEN }}'
       hc-releases-host-prod: '${{ secrets.HC_RELEASES_HOST_PROD }}'
