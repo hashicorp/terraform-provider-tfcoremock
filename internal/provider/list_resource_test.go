@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-testing/helper/resource"
 	"github.com/hashicorp/terraform-plugin-testing/knownvalue"
 	"github.com/hashicorp/terraform-plugin-testing/querycheck"
+	"github.com/hashicorp/terraform-plugin-testing/querycheck/queryfilter"
 	"github.com/hashicorp/terraform-plugin-testing/tfjsonpath"
 	"github.com/hashicorp/terraform-plugin-testing/tfversion"
 )
@@ -56,7 +57,18 @@ func TestAccDynamicResourceList(t *testing.T) {
 					querycheck.ExpectIdentity("tfcoremock_dynamic_resource.resource", map[string]knownvalue.Check{
 						"id": knownvalue.StringExact("one"),
 					}),
-					querycheck.ExpectKnownValue("tfcoremock_dynamic_resource.resource", "one", tfjsonpath.New("value"), knownvalue.StringExact("hello, world")),
+					querycheck.ExpectResourceKnownValues(
+						"tfcoremock_dynamic_resource.resource",
+						queryfilter.ByResourceIdentity(map[string]knownvalue.Check{
+							"id": knownvalue.StringExact("one"),
+						}),
+						[]querycheck.KnownValueCheck{
+							{
+								Path:       tfjsonpath.New("value"),
+								KnownValue: knownvalue.StringExact("hello, world"),
+							},
+						},
+					),
 				},
 			},
 		},
