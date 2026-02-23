@@ -91,7 +91,7 @@ jobs:
           - '1.11.*'
           - '1.12.*'
           - '1.13.*'
-          # - '1.14.*' TODO: As soon as 1.14 is released.
+          - '1.14.*'
     steps:
       - uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
       - uses: actions/setup-go@4dc6199c7b1a012772edbd06daecab0f50c9053c # v6.1.0
