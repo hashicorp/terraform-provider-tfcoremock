@@ -10,6 +10,17 @@ permissions:
   contents: read
 
 jobs:
+  copywrite:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@8e8c483db84b4bee98b60c0593521ed34d9990e8 # v6.0.1
+      - name: Install copywrite
+        uses: hashicorp/setup-copywrite@v1.1.3
+      - name: Validate Header Compliance
+        run: copywrite headers --plan
+
   # Ensure project builds before running testing matrix
   build:
     name: Build
