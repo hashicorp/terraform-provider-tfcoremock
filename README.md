@@ -159,3 +159,11 @@ the provider binary in the `$GOPATH/bin` directory.
 To generate or update documentation, run `go generate`.
 
 In order to run the full suite of Acceptance tests, run `make testacc`.
+
+## Releasing the Provider
+
+The provider release process is triggered by a maintainer pushing a semver tag to main. This triggers the `Release` GitHub Action workflow at `.github/workflows/release.yml`.
+
+That workflow generates release notes from the CHANGELOG file, so **make sure the CHANGELOG.md file is up-to-date before pushing a tag**.
+
+At some point in the future this repository may be migrated to the new CRT release process.
