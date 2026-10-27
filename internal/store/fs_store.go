@@ -169,11 +169,49 @@ func (f *Fs) Write(ctx context.Context, req statestore.WriteRequest, resp *state
 }
 
 func (f *Fs) Lock(ctx context.Context, req statestore.LockRequest, resp *statestore.LockResponse) {
-	// TODO - implement
+	stateFilePath := f.stateFilePath(req.StateID)
+
+	file, err := os.OpenFile(stateFilePath, os.O_RDWR, 0666)
+	if err != nil {
+		resp.Diagnostics = append(
+			resp.Diagnostics,
+			diag.NewErrorDiagnostic("Failed to lock workspace file", fmt.Sprintf("Error when opening file: %v", err)),
+		)
+		return
+	}
+	defer file.Close()
+
+	err = f.lock(file)
+	if err != nil {
+		resp.Diagnostics = append(
+			resp.Diagnostics,
+			diag.NewErrorDiagnostic("Failed to lock workspace file", fmt.Sprintf("Error when locking file: %v", err)),
+		)
+		return
+	}
 }
 
 func (f *Fs) Unlock(ctx context.Context, req statestore.UnlockRequest, resp *statestore.UnlockResponse) {
-	// TODO - implement
+	stateFilePath := f.stateFilePath(req.StateID)
+
+	file, err := os.OpenFile(stateFilePath, os.O_RDWR, 0666)
+	if err != nil {
+		resp.Diagnostics = append(
+			resp.Diagnostics,
+			diag.NewErrorDiagnostic("Failed to unlock workspace file", fmt.Sprintf("Error when opening file: %v", err)),
+		)
+		return
+	}
+	defer file.Close()
+
+	err = f.unlock(file)
+	if err != nil {
+		resp.Diagnostics = append(
+			resp.Diagnostics,
+			diag.NewErrorDiagnostic("Failed to unlock workspace file", fmt.Sprintf("Error when unlocking file: %v", err)),
+		)
+		return
+	}
 }
 
 func fsStateStoreSchema() schema.Schema {

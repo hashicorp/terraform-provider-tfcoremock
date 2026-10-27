@@ -1,14 +1,15 @@
-// Copyright (c) HashiCorp, Inc.
+// Copyright IBM Corp. 2022, 2026
 // SPDX-License-Identifier: MPL-2.0
 
 //go:build windows
 // +build windows
 
-package statemgr
+package state_store
 
 import (
 	"log"
 	"math"
+	"os"
 	"syscall"
 	"unsafe"
 )
@@ -26,8 +27,8 @@ const (
 	_LOCKFILE_EXCLUSIVE_LOCK   = 2
 )
 
-func (s *Filesystem) lock() error {
-	log.Printf("[TRACE] statemgr.Filesystem: locking %s using LockFileEx", s.path)
+func (f *Fs) lock(state *os.File) error {
+	log.Printf("[TRACE] statemgr.Filesystem: locking %s using LockFileEx", state.Name())
 
 	// even though we're failing immediately, an overlapped event structure is
 	// required
@@ -38,7 +39,7 @@ func (s *Filesystem) lock() error {
 	defer syscall.CloseHandle(ol.HEvent)
 
 	return lockFileEx(
-		syscall.Handle(s.stateFileOut.Fd()),
+		syscall.Handle(state.Fd()),
 		_LOCKFILE_EXCLUSIVE_LOCK|_LOCKFILE_FAIL_IMMEDIATELY,
 		0,              // reserved
 		0,              // bytes low
@@ -47,8 +48,8 @@ func (s *Filesystem) lock() error {
 	)
 }
 
-func (s *Filesystem) unlock() error {
-	log.Printf("[TRACE] statemgr.Filesystem: unlocked by closing %s", s.path)
+func (f *Fs) unlock(state *os.File) error {
+	log.Printf("[TRACE] statemgr.Filesystem: unlocked by closing %s", state.Name())
 
 	// the file is closed in Unlock
 	return nil
