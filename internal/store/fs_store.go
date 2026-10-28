@@ -178,13 +178,26 @@ func (f *Fs) Lock(ctx context.Context, req statestore.LockRequest, resp *statest
 	stateFilePath := f.stateFilePath(req.StateID)
 
 	file, err := os.OpenFile(stateFilePath, os.O_RDWR, 0666)
-	if err != nil {
+	_, ok := err.(*os.PathError)
+	if err != nil && !ok {
 		resp.Diagnostics = append(
 			resp.Diagnostics,
 			diag.NewErrorDiagnostic("Failed to lock workspace file", fmt.Sprintf("Error when opening file: %v", err)),
 		)
 		return
 	}
+	if ok {
+		// handle state file not existing yet by making an empty file
+		file, err = f.createOrOpenWorkspaceFile(req.StateID)
+		if err != nil {
+			resp.Diagnostics = append(
+				resp.Diagnostics,
+				diag.NewErrorDiagnostic("Failed to create missing workspace file during locking", fmt.Sprintf("Error: %v", err)),
+			)
+			return
+		}
+	}
+
 	defer file.Close()
 
 	err = f.lock(file)
@@ -201,13 +214,26 @@ func (f *Fs) Unlock(ctx context.Context, req statestore.UnlockRequest, resp *sta
 	stateFilePath := f.stateFilePath(req.StateID)
 
 	file, err := os.OpenFile(stateFilePath, os.O_RDWR, 0666)
-	if err != nil {
+	_, ok := err.(*os.PathError)
+	if err != nil && !ok {
 		resp.Diagnostics = append(
 			resp.Diagnostics,
 			diag.NewErrorDiagnostic("Failed to unlock workspace file", fmt.Sprintf("Error when opening file: %v", err)),
 		)
 		return
 	}
+	if ok {
+		// handle state file not existing yet by making an empty file
+		file, err = f.createOrOpenWorkspaceFile(req.StateID)
+		if err != nil {
+			resp.Diagnostics = append(
+				resp.Diagnostics,
+				diag.NewErrorDiagnostic("Failed to create missing workspace file during unlocking", fmt.Sprintf("Error: %v", err)),
+			)
+			return
+		}
+	}
+
 	defer file.Close()
 
 	err = f.unlock(file)
