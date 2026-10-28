@@ -126,14 +126,20 @@ func (f *Fs) DeleteState(ctx context.Context, req statestore.DeleteStateRequest,
 }
 
 func (f *Fs) Read(ctx context.Context, req statestore.ReadRequest, resp *statestore.ReadResponse) {
-	file, err := f.createOrOpenWorkspaceFile(req.StateID)
-	if err != nil {
+	file, err := f.openWorkspaceFile(req.StateID)
+	_, ok := err.(*os.PathError)
+	if err != nil && !ok {
 		resp.Diagnostics = append(
 			resp.Diagnostics,
-			diag.NewErrorDiagnostic("Failed to create or open workspace file", fmt.Sprintf("Error: %v", err)),
+			diag.NewErrorDiagnostic("Failed open workspace file", fmt.Sprintf("Error: %v", err)),
 		)
 		return
 	}
+	if ok {
+		// it's ok for a state file to not exist yet; return empty state
+		return
+	}
+
 	defer file.Close()
 
 	// Read the contents of the file into resp.StateBytes
@@ -231,6 +237,15 @@ func (f *Fs) stateFilePath(name string) string {
 	return filepath.Join(f.WorkspaceDir, name, defaultStateFilename)
 }
 
+// openWorkspaceFile attempts to open a state file
+// Calling code is responsible for handling the case where the file does not exist.
+func (f *Fs) openWorkspaceFile(workspaceName string) (*os.File, error) {
+	stateFilePath := f.stateFilePath(workspaceName)
+	return os.OpenFile(stateFilePath, os.O_RDWR, 0666)
+}
+
+// createOrOpenWorkspaceFile will open an existing state file or create it if it does not exist.
+// This includes creating any necessary directories leading up to the state file location.
 func (f *Fs) createOrOpenWorkspaceFile(workspaceName string) (*os.File, error) {
 	stateFilePath := f.stateFilePath(workspaceName)
 	_, err := os.Stat(stateFilePath)
