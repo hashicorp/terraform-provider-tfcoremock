@@ -33,7 +33,7 @@ jobs:
   terraform-provider-release:
     name: 'Terraform Provider Release'
     needs: [go-version, release-notes]
-    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@5f388ae147bcc1e1c34822571b2f2de40694c5d6 # v5.0.0
+    uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@534d9c97a43a6782305f0c05a52a6a2715de816b # v4.2.1
     secrets:
       hc-releases-github-token: '${{ secrets.HASHI_RELEASES_GITHUB_TOKEN }}'
       hc-releases-host-prod: '${{ secrets.HC_RELEASES_HOST_PROD }}'
