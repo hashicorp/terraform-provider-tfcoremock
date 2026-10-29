@@ -15,6 +15,8 @@ import (
 */
 
 func TestAccStateStore_Fs_init(t *testing.T) {
+	t.Skip("skipping this test as the tfcoremock repo doesn't enable running tests that include experimental features")
+	
 	// Setting this environment variable ensures TF core uses pluggable state storage during init.
 	// This is only temporary while PSS is experimental.
 	t.Setenv("TF_ENABLE_PLUGGABLE_STATE_STORAGE", "1")
