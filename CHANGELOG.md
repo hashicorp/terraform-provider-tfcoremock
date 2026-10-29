@@ -1,5 +1,10 @@
 ## v0.6.0 (Unreleased)
 
+NOTES:
+
+* Update dependencies.
+* Upgrade from Go v1.24.1 to v1.25.13
+
 ENHANCEMENTS:
 
 * Add support for mocking actions. ([#191](https://github.com/hashicorp/terraform-provider-tfcoremock/pull/191))
