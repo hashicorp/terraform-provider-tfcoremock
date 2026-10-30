@@ -166,7 +166,7 @@ The provider release process is triggered by a maintainer pushing a semver tag t
 
 That workflow generates release notes from the CHANGELOG file, so **make sure the CHANGELOG.md file is up-to-date before pushing a tag**.
 
-At some point in the future this repository may be migrated to the new CRT release process.
+At some point in the future this repository may be migrated to the new CRT release process. For now, the release process relies on us _not accepting_ Dependabot prompts to upgrade the `hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml` GitHub action to v5.0.0.
 
 ```
 git pull origin --tags
