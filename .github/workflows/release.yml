@@ -33,6 +33,7 @@ jobs:
   terraform-provider-release:
     name: 'Terraform Provider Release'
     needs: [go-version, release-notes]
+    # Do not update to v5.0.0, unless as part of a release process overhaul/migration to CRT.
     uses: hashicorp/ghaction-terraform-provider-release/.github/workflows/hashicorp.yml@534d9c97a43a6782305f0c05a52a6a2715de816b # v4.2.1
     secrets:
       hc-releases-github-token: '${{ secrets.HASHI_RELEASES_GITHUB_TOKEN }}'
