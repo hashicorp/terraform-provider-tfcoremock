@@ -167,3 +167,11 @@ The provider release process is triggered by a maintainer pushing a semver tag t
 That workflow generates release notes from the CHANGELOG file, so **make sure the CHANGELOG.md file is up-to-date before pushing a tag**.
 
 At some point in the future this repository may be migrated to the new CRT release process.
+
+```
+git pull origin --tags
+git checkout <main, or the commit SHA you're releasing from main>
+git tag vX.Y.Z
+git log # Double check the commit you're tagging!
+git push origin vX.Y.Z 
+```
