@@ -17,6 +17,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/provider"
 	provider_schema "github.com/hashicorp/terraform-plugin-framework/provider/schema"
 	tfresource "github.com/hashicorp/terraform-plugin-framework/resource"
+	"github.com/hashicorp/terraform-plugin-framework/statestore"
 	"github.com/hashicorp/terraform-plugin-framework/types"
 
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/client"
@@ -24,11 +25,15 @@ import (
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/complex"
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/dynamic"
 	"github.com/hashicorp/terraform-provider-tfcoremock/internal/schema/simple"
+	store "github.com/hashicorp/terraform-provider-tfcoremock/internal/store"
 )
 
-var _ provider.Provider = &tfcoremockProvider{}
-var _ provider.ProviderWithActions = &tfcoremockProvider{}
-var _ provider.ProviderWithListResources = &tfcoremockProvider{}
+var (
+	_ provider.Provider                  = &tfcoremockProvider{}
+	_ provider.ProviderWithActions       = &tfcoremockProvider{}
+	_ provider.ProviderWithListResources = &tfcoremockProvider{}
+	_ provider.ProviderWithStateStores   = &tfcoremockProvider{}
+)
 
 const (
 	description = `The 'tfcoremock' provider is intended to aid with testing the Terraform core libraries and the Terraform CLI. This provider should allow users to define all possible Terraform configurations and run them through the Terraform core platform.
@@ -407,6 +412,18 @@ func (m *tfcoremockProvider) ListResources(ctx context.Context) []func() list.Li
 	}
 
 	return listResources
+}
+
+func (m *tfcoremockProvider) StateStores(context.Context) []func() statestore.StateStore {
+	stateStores := []func() statestore.StateStore{
+		func() statestore.StateStore {
+			return &store.Fs{
+				Name: "tfcoremock_fs",
+			}
+		},
+	}
+
+	return stateStores
 }
 
 func (m *tfcoremockProvider) Schema(ctx context.Context, request provider.SchemaRequest, response *provider.SchemaResponse) {
