@@ -14,6 +14,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-framework/diag"
 	"github.com/hashicorp/terraform-plugin-framework/statestore"
 	schema "github.com/hashicorp/terraform-plugin-framework/statestore/schema"
+	"github.com/hashicorp/terraform-plugin-framework/types/basetypes"
 )
 
 const (
@@ -34,7 +35,7 @@ type Fs struct {
 }
 
 type fsModel struct {
-	WorkspaceDir string `tfsdk:"workspace_dir"`
+	WorkspaceDir basetypes.StringValue `tfsdk:"workspace_dir"`
 }
 
 var (
@@ -74,8 +75,8 @@ func (f *Fs) Configure(ctx context.Context, req statestore.ConfigureRequest, res
 
 		// workspace_dir attribute
 		switch {
-		case data.WorkspaceDir != "":
-			f.WorkspaceDir = data.WorkspaceDir
+		case !data.WorkspaceDir.IsNull():
+			f.WorkspaceDir = data.WorkspaceDir.ValueString()
 		default:
 			f.WorkspaceDir = defaultWorkspaceDir
 		}
